@@ -17,7 +17,7 @@ from great_expectations.dataset.util import (
     build_continuous_partition_object,
     build_categorical_partition_object,
     is_valid_partition_object,
-    is_valid_categorical_partition_object
+    is_valid_categorical_partition_object,
 )
 
 import pandas as pd
@@ -103,38 +103,44 @@ class MetaDataset(DataAsset):
 
             evaluation_result = func(self, column, *args, **kwargs)
 
-            if 'success' not in evaluation_result:
+            if "success" not in evaluation_result:
                 raise ValueError(
-                    "Column aggregate expectation failed to return required information: success")
+                    "Column aggregate expectation failed to return required information: success"
+                )
 
-            if ('result' not in evaluation_result) or ('observed_value' not in evaluation_result['result']):
+            if ("result" not in evaluation_result) or (
+                "observed_value" not in evaluation_result["result"]
+            ):
                 raise ValueError(
-                    "Column aggregate expectation failed to return required information: observed_value")
+                    "Column aggregate expectation failed to return required information: observed_value"
+                )
 
-            return_obj = {
-                'success': bool(evaluation_result['success'])
-            }
+            return_obj = {"success": bool(evaluation_result["success"])}
 
-            if result_format['result_format'] == 'BOOLEAN_ONLY':
+            if result_format["result_format"] == "BOOLEAN_ONLY":
                 return return_obj
 
-            return_obj['result'] = {
-                'observed_value': evaluation_result['result']['observed_value'],
+            return_obj["result"] = {
+                "observed_value": evaluation_result["result"]["observed_value"],
                 "element_count": element_count,
                 "missing_count": null_count,
-                "missing_percent": null_count * 100.0 / element_count if element_count > 0 else None
+                "missing_percent": null_count * 100.0 / element_count
+                if element_count > 0
+                else None,
             }
 
-            if result_format['result_format'] == 'BASIC':
+            if result_format["result_format"] == "BASIC":
                 return return_obj
 
-            if 'details' in evaluation_result['result']:
-                return_obj['result']['details'] = evaluation_result['result']['details']
+            if "details" in evaluation_result["result"]:
+                return_obj["result"]["details"] = evaluation_result["result"]["details"]
 
-            if result_format['result_format'] in ["SUMMARY", "COMPLETE"]:
+            if result_format["result_format"] in ["SUMMARY", "COMPLETE"]:
                 return return_obj
 
-            raise ValueError("Unknown result_format %s." % result_format['result_format'])
+            raise ValueError(
+                "Unknown result_format %s." % result_format["result_format"]
+            )
 
         return inner_wrapper
 
@@ -148,21 +154,21 @@ class Dataset(MetaDataset):
 
     # getter functions with hashable arguments - can be cached
     hashable_getters = [
-        'get_column_min',
-        'get_column_max',
-        'get_column_mean',
-        'get_column_modes',
-        'get_column_median',
-        'get_column_quantiles',
-        'get_column_nonnull_count',
-        'get_column_stdev',
-        'get_column_sum',
-        'get_column_unique_count',
-        'get_column_value_counts',
-        'get_row_count',
-        'get_column_count',
-        'get_table_columns',
-        'get_column_count_in_range',
+        "get_column_min",
+        "get_column_max",
+        "get_column_mean",
+        "get_column_modes",
+        "get_column_median",
+        "get_column_quantiles",
+        "get_column_nonnull_count",
+        "get_column_stdev",
+        "get_column_sum",
+        "get_column_unique_count",
+        "get_column_value_counts",
+        "get_row_count",
+        "get_column_count",
+        "get_table_columns",
+        "get_column_count_in_range",
     ]
 
     def __init__(self, *args, **kwargs):
@@ -176,7 +182,7 @@ class Dataset(MetaDataset):
             for func in self.hashable_getters:
                 caching_func = lru_cache(maxsize=None)(getattr(self, func))
                 setattr(self, func, caching_func)
-    
+
     @classmethod
     def from_dataset(cls, dataset=None):
         """This base implementation naively passes arguments on to the real constructor, which
@@ -250,7 +256,7 @@ class Dataset(MetaDataset):
             column (string): name of column
             quantiles (tuple of float): the quantiles to return. quantiles \
             *must* be a tuple to ensure caching is possible
-        
+
         Returns:
             List[any]: the nearest values in the dataset to those quantiles
         """
@@ -260,7 +266,9 @@ class Dataset(MetaDataset):
         """Returns: float"""
         raise NotImplementedError
 
-    def get_column_partition(self, column, bins='uniform', n_bins=10, allow_relative_error=False):
+    def get_column_partition(
+        self, column, bins="uniform", n_bins=10, allow_relative_error=False
+    ):
         """Get a partition of the range of values in the specified column.
 
         Args:
@@ -275,36 +283,43 @@ class Dataset(MetaDataset):
         Returns:
             A list of bins
         """
-        if bins == 'uniform':
+        if bins == "uniform":
             # TODO: in the event that we shift the compute model for
             #  min and max to have a single pass, use that instead of
             #  quantiles for clarity
             # min_ = self.get_column_min(column)
             # max_ = self.get_column_max(column)
-            min_, max_ = self.get_column_quantiles(column, (0.0, 1.0), allow_relative_error=allow_relative_error)
+            min_, max_ = self.get_column_quantiles(
+                column, (0.0, 1.0), allow_relative_error=allow_relative_error
+            )
             # PRECISION NOTE: some implementations of quantiles could produce
             # varying levels of precision (e.g. a NUMERIC column producing
             # Decimal from a SQLAlchemy source, so we cast to float for numpy)
-            bins = np.linspace(start=float(min_), stop=float(max_), num=n_bins+1)
-        elif bins in ['ntile', 'quantile', 'percentile']:
+            bins = np.linspace(start=float(min_), stop=float(max_), num=n_bins + 1)
+        elif bins in ["ntile", "quantile", "percentile"]:
             bins = self.get_column_quantiles(
                 column,
-                tuple(np.linspace(start=0, stop=1, num=n_bins+1)),
-                allow_relative_error=allow_relative_error
+                tuple(np.linspace(start=0, stop=1, num=n_bins + 1)),
+                allow_relative_error=allow_relative_error,
             )
-        elif bins == 'auto':
+        elif bins == "auto":
             # Use the method from numpy histogram_bin_edges
             nonnull_count = self.get_column_nonnull_count(column)
             sturges = np.log2(nonnull_count + 1)
-            min_, _25, _75, max_ = self.get_column_quantiles(column, (0.0, 0.25, 0.75, 1.0),
-                                                             allow_relative_error=allow_relative_error)
+            min_, _25, _75, max_ = self.get_column_quantiles(
+                column,
+                (0.0, 0.25, 0.75, 1.0),
+                allow_relative_error=allow_relative_error,
+            )
             iqr = _75 - _25
-            if (iqr < 1e-10):  # Consider IQR 0 and do not use variance-based estimator
+            if iqr < 1e-10:  # Consider IQR 0 and do not use variance-based estimator
                 n_bins = sturges
             else:
-                fd = (2 * float(iqr)) / (nonnull_count**(1/3))
-                n_bins = max(int(np.ceil(sturges)), int(np.ceil(float(max_ - min_) / fd)))
-            bins = np.linspace(start=float(min_), stop=float(max_), num=n_bins+1)
+                fd = (2 * float(iqr)) / (nonnull_count ** (1 / 3))
+                n_bins = max(
+                    int(np.ceil(sturges)), int(np.ceil(float(max_ - min_) / fd))
+                )
+            bins = np.linspace(start=float(min_), stop=float(max_), num=n_bins + 1)
         else:
             raise ValueError("Invalid parameter for bins argument")
         return bins
@@ -318,7 +333,9 @@ class Dataset(MetaDataset):
         Returns: List[int], a list of counts corresponding to bins"""
         raise NotImplementedError
 
-    def get_column_count_in_range(self, column, min_val=None, max_val=None, strict_min=False, strict_max=True):
+    def get_column_count_in_range(
+        self, column, min_val=None, max_val=None, strict_min=False, strict_max=True
+    ):
         """Returns: int"""
         raise NotImplementedError
 
@@ -376,9 +393,12 @@ class Dataset(MetaDataset):
     @DataAsset.expectation(["column"])
     def expect_column_to_exist(
         self,
-        column, column_index=None,
-        result_format=None, include_config=True, catch_exceptions=None,
-        meta=None
+        column,
+        column_index=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the specified column to exist.
 
@@ -418,7 +438,8 @@ class Dataset(MetaDataset):
         if column in columns:
             return {
                 # FIXME: list.index does not check for duplicate values.
-                "success": (column_index is None) or (columns.index(column) == column_index)
+                "success": (column_index is None)
+                or (columns.index(column) == column_index)
             }
         else:
             return {"success": False}
@@ -466,12 +487,7 @@ class Dataset(MetaDataset):
         """
         columns = self.get_table_columns()
         if column_list is None or list(columns) == list(column_list):
-            return {
-                "success": True,
-                "result": {
-                    "observed_value": list(columns)
-                }
-            }
+            return {"success": True, "result": {"observed_value": list(columns)}}
         else:
             # In the case of differing column lengths between the defined expectation and the observed column set, the
             # max is determined to generate the column_index.
@@ -479,27 +495,32 @@ class Dataset(MetaDataset):
             column_index = range(number_of_columns)
 
             # Create a list of the mismatched details
-            compared_lists = list(zip_longest(column_index, list(column_list), list(columns)))
-            mismatched = [{"Expected Column Position": i,
-                           "Expected": k,
-                           "Found": v} for i, k, v in compared_lists if k != v]
+            compared_lists = list(
+                zip_longest(column_index, list(column_list), list(columns))
+            )
+            mismatched = [
+                {"Expected Column Position": i, "Expected": k, "Found": v}
+                for i, k, v in compared_lists
+                if k != v
+            ]
             return {
                 "success": False,
                 "result": {
                     "observed_value": list(columns),
-                    "details": {
-                        "mismatched": mismatched
-                    }
-                }
+                    "details": {"mismatched": mismatched},
+                },
             }
 
     # noinspection PyUnusedLocal
     @DocInherit
-    @DataAsset.expectation(['min_value', 'max_value'])
+    @DataAsset.expectation(["min_value", "max_value"])
     def expect_table_column_count_to_be_between(
         self,
-        min_value=None, max_value=None,
-        result_format=None, include_config=True, catch_exceptions=None,
+        min_value=None,
+        max_value=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
         meta=None,
     ):
         """Expect the number of columns to be between two values.
@@ -572,21 +593,18 @@ class Dataset(MetaDataset):
 
         outcome = above_min and below_max
 
-        return {
-            'success': outcome,
-            'result': {
-                'observed_value': column_count
-            }
-        }
+        return {"success": outcome, "result": {"observed_value": column_count}}
 
     # noinspection PyUnusedLocal
     @DocInherit
-    @DataAsset.expectation(['value'])
+    @DataAsset.expectation(["value"])
     def expect_table_column_count_to_equal(
-            self,
-            value,
-            result_format=None, include_config=True, catch_exceptions=None,
-            meta=None
+        self,
+        value,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the number of columns to equal a value.
 
@@ -630,19 +648,20 @@ class Dataset(MetaDataset):
         column_count = self.get_column_count()
 
         return {
-            'success': column_count == value,
-            'result': {
-                'observed_value': column_count
-            }
+            "success": column_count == value,
+            "result": {"observed_value": column_count},
         }
 
     # noinspection PyUnusedLocal
     @DocInherit
-    @DataAsset.expectation(['min_value', 'max_value'])
+    @DataAsset.expectation(["min_value", "max_value"])
     def expect_table_row_count_to_be_between(
         self,
-        min_value=None, max_value=None,
-        result_format=None, include_config=True, catch_exceptions=None,
+        min_value=None,
+        max_value=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
         meta=None,
     ):
         """Expect the number of rows to be between two values.
@@ -715,21 +734,18 @@ class Dataset(MetaDataset):
 
         outcome = above_min and below_max
 
-        return {
-            'success': outcome,
-            'result': {
-                'observed_value': row_count
-            }
-        }
+        return {"success": outcome, "result": {"observed_value": row_count}}
 
     # noinspection PyUnusedLocal
     @DocInherit
-    @DataAsset.expectation(['value'])
+    @DataAsset.expectation(["value"])
     def expect_table_row_count_to_equal(
-            self,
-            value,
-            result_format=None, include_config=True, catch_exceptions=None,
-            meta=None
+        self,
+        value,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the number of rows to equal a value.
 
@@ -772,12 +788,7 @@ class Dataset(MetaDataset):
 
         row_count = self.get_row_count()
 
-        return {
-            'success': row_count == value,
-            'result': {
-                'observed_value': row_count
-            }
-        }
+        return {"success": row_count == value, "result": {"observed_value": row_count}}
 
     ###
     #
@@ -785,11 +796,15 @@ class Dataset(MetaDataset):
     #
     ###
 
-    def expect_column_values_to_be_unique(self,
-                                          column,
-                                          mostly=None,
-                                          result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                          ):
+    def expect_column_values_to_be_unique(
+        self,
+        column,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """Expect each column value to be unique.
 
         This expectation detects duplicates. All duplicated values are counted as exceptions.
@@ -831,11 +846,15 @@ class Dataset(MetaDataset):
         """
         raise NotImplementedError
 
-    def expect_column_values_to_not_be_null(self,
-                                            column,
-                                            mostly=None,
-                                            result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                            ):
+    def expect_column_values_to_not_be_null(
+        self,
+        column,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """Expect column values to not be null.
 
         To be counted as an exception, values must be explicitly null or missing, such as a NULL in PostgreSQL or an
@@ -880,11 +899,15 @@ class Dataset(MetaDataset):
         """
         raise NotImplementedError
 
-    def expect_column_values_to_be_null(self,
-                                        column,
-                                        mostly=None,
-                                        result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                        ):
+    def expect_column_values_to_be_null(
+        self,
+        column,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """Expect column values to be null.
 
         expect_column_values_to_be_null is a \
@@ -931,7 +954,10 @@ class Dataset(MetaDataset):
         column,
         type_,
         mostly=None,
-        result_format=None, include_config=True, catch_exceptions=None, meta=None
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect a column to contain values of a specified data type.
 
@@ -993,7 +1019,10 @@ class Dataset(MetaDataset):
         column,
         type_list,
         mostly=None,
-        result_format=None, include_config=True, catch_exceptions=None, meta=None
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect a column to contain values from a specified type list.
 
@@ -1053,13 +1082,17 @@ class Dataset(MetaDataset):
     #
     ####
 
-    def expect_column_values_to_be_in_set(self,
-                                          column,
-                                          value_set,
-                                          mostly=None,
-                                          parse_strings_as_datetimes=None,
-                                          result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                          ):
+    def expect_column_values_to_be_in_set(
+        self,
+        column,
+        value_set,
+        mostly=None,
+        parse_strings_as_datetimes=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         # noinspection PyUnresolvedReferences
         """Expect each column value to be in a given set.
 
@@ -1126,13 +1159,17 @@ class Dataset(MetaDataset):
         """
         raise NotImplementedError
 
-    def expect_column_values_to_not_be_in_set(self,
-                                              column,
-                                              value_set,
-                                              mostly=None,
-                                              parse_strings_as_datetimes=None,
-                                              result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                              ):
+    def expect_column_values_to_not_be_in_set(
+        self,
+        column,
+        value_set,
+        mostly=None,
+        parse_strings_as_datetimes=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         # noinspection PyUnresolvedReferences
         """Expect column entries to not be in the set.
 
@@ -1197,19 +1234,23 @@ class Dataset(MetaDataset):
         """
         raise NotImplementedError
 
-    def expect_column_values_to_be_between(self,
-                                           column,
-                                           min_value=None,
-                                           max_value=None,
-                                           strict_min=False,
-                                           strict_max=False,
-                                           # tolerance=1e-9,
-                                           allow_cross_type_comparisons=None,
-                                           parse_strings_as_datetimes=False,
-                                           output_strftime_format=None,
-                                           mostly=None,
-                                           result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                           ):
+    def expect_column_values_to_be_between(
+        self,
+        column,
+        min_value=None,
+        max_value=None,
+        strict_min=False,
+        strict_max=False,
+        # tolerance=1e-9,
+        allow_cross_type_comparisons=None,
+        parse_strings_as_datetimes=False,
+        output_strftime_format=None,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """Expect column entries to be between a minimum value and a maximum value (inclusive).
 
         expect_column_values_to_be_between is a \
@@ -1269,13 +1310,17 @@ class Dataset(MetaDataset):
         """
         raise NotImplementedError
 
-    def expect_column_values_to_be_increasing(self,
-                                              column,
-                                              strictly=None,
-                                              parse_strings_as_datetimes=False,
-                                              mostly=None,
-                                              result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                              ):
+    def expect_column_values_to_be_increasing(
+        self,
+        column,
+        strictly=None,
+        parse_strings_as_datetimes=False,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """Expect column values to be increasing.
 
         By default, this expectation only works for numeric or datetime data.
@@ -1327,13 +1372,17 @@ class Dataset(MetaDataset):
         """
         raise NotImplementedError
 
-    def expect_column_values_to_be_decreasing(self,
-                                              column,
-                                              strictly=None,
-                                              parse_strings_as_datetimes=False,
-                                              mostly=None,
-                                              result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                              ):
+    def expect_column_values_to_be_decreasing(
+        self,
+        column,
+        strictly=None,
+        parse_strings_as_datetimes=False,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """Expect column values to be decreasing.
 
         By default, this expectation only works for numeric or datetime data.
@@ -1392,12 +1441,15 @@ class Dataset(MetaDataset):
     ###
 
     def expect_column_value_lengths_to_be_between(
-            self,
-            column,
-            min_value=None,
-            max_value=None,
-            mostly=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None
+        self,
+        column,
+        min_value=None,
+        max_value=None,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect column entries to be strings with length between a minimum value and a maximum value (inclusive).
 
@@ -1453,12 +1505,16 @@ class Dataset(MetaDataset):
         """
         raise NotImplementedError
 
-    def expect_column_value_lengths_to_equal(self,
-                                             column,
-                                             value,
-                                             mostly=None,
-                                             result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                             ):
+    def expect_column_value_lengths_to_equal(
+        self,
+        column,
+        value,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """Expect column entries to be strings with length equal to the provided value.
 
         This expectation only works for string-type values. Invoking it on ints or floats will raise a TypeError.
@@ -1504,12 +1560,16 @@ class Dataset(MetaDataset):
         """
         raise NotImplementedError
 
-    def expect_column_values_to_match_regex(self,
-                                            column,
-                                            regex,
-                                            mostly=None,
-                                            result_format=None, include_config=True, catch_exceptions=None, meta=None
-                                            ):
+    def expect_column_values_to_match_regex(
+        self,
+        column,
+        regex,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """Expect column entries to be strings that match a given regular expression. Valid matches can be found \
         anywhere in the string, for example "[at]+" will identify the following strings as expected: "cat", "hat", \
         "aa", "a", and "t", and the following strings as unexpected: "fish", "dog".
@@ -1559,11 +1619,14 @@ class Dataset(MetaDataset):
         raise NotImplementedError
 
     def expect_column_values_to_not_match_regex(
-            self,
-            column,
-            regex,
-            mostly=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None
+        self,
+        column,
+        regex,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect column entries to be strings that do NOT match a given regular expression. The regex must not match \
         any portion of the provided string. For example, "[at]+" would identify the following strings as expected: \
@@ -1614,10 +1677,15 @@ class Dataset(MetaDataset):
         raise NotImplementedError
 
     def expect_column_values_to_match_regex_list(
-            self,
-            column, regex_list, match_on="any",
-            mostly=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None
+        self,
+        column,
+        regex_list,
+        match_on="any",
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the column entries to be strings that can be matched to either any of or all of a list of regular
         expressions. Matches can be anywhere in the string.
@@ -1671,11 +1739,15 @@ class Dataset(MetaDataset):
         raise NotImplementedError
 
     def expect_column_values_to_not_match_regex_list(
-            self,
-            column, regex_list,
-            mostly=None,
-            result_format=None, include_config=True, catch_exceptions=None,
-            meta=None):
+        self,
+        column,
+        regex_list,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """Expect the column entries to be strings that do not match any of a list of regular expressions. Matches can
         be anywhere in the string.
 
@@ -1727,11 +1799,14 @@ class Dataset(MetaDataset):
     ###
 
     def expect_column_values_to_match_strftime_format(
-            self,
-            column,
-            strftime_format,
-            mostly=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None
+        self,
+        column,
+        strftime_format,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect column entries to be strings representing a date or time with a given format.
 
@@ -1773,10 +1848,13 @@ class Dataset(MetaDataset):
         raise NotImplementedError
 
     def expect_column_values_to_be_dateutil_parseable(
-            self,
-            column,
-            mostly=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None
+        self,
+        column,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect column entries to be parsable using dateutil.
 
@@ -1816,10 +1894,13 @@ class Dataset(MetaDataset):
         raise NotImplementedError
 
     def expect_column_values_to_be_json_parseable(
-            self,
-            column,
-            mostly=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None
+        self,
+        column,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect column entries to be data written in JavaScript Object Notation.
 
@@ -1863,11 +1944,14 @@ class Dataset(MetaDataset):
         raise NotImplementedError
 
     def expect_column_values_to_match_json_schema(
-            self,
-            column,
-            json_schema,
-            mostly=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None
+        self,
+        column,
+        json_schema,
+        mostly=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect column entries to be JSON objects matching a given JSON schema.
 
@@ -1919,10 +2003,16 @@ class Dataset(MetaDataset):
     ####
 
     def expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than(
-            self,
-            column,
-            distribution, p_value=0.05, params=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None):
+        self,
+        column,
+        distribution,
+        p_value=0.05,
+        params=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         """
         Expect the column values to be distributed similarly to a scipy distribution. \
 
@@ -1999,11 +2089,15 @@ class Dataset(MetaDataset):
     @DocInherit
     @MetaDataset.column_aggregate_expectation
     def expect_column_distinct_values_to_be_in_set(
-            self,
-            column,
-            value_set,
-            parse_strings_as_datetimes=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None):
+        self,
+        column,
+        value_set,
+        parse_strings_as_datetimes=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         # noinspection PyUnresolvedReferences
         """Expect the set of distinct column values to be contained by a given set.
 
@@ -2088,7 +2182,9 @@ class Dataset(MetaDataset):
         else:
             if parse_strings_as_datetimes:
                 parsed_value_set = self._parse_value_set(value_set)
-                parsed_observed_value_set = set(self._parse_value_set(observed_value_counts.index))
+                parsed_observed_value_set = set(
+                    self._parse_value_set(observed_value_counts.index)
+                )
             else:
                 parsed_value_set = value_set
                 parsed_observed_value_set = set(observed_value_counts.index)
@@ -2100,21 +2196,23 @@ class Dataset(MetaDataset):
             "success": success,
             "result": {
                 "observed_value": sorted(list(parsed_observed_value_set)),
-                "details": {
-                    "value_counts": observed_value_counts
-                }
-            }
+                "details": {"value_counts": observed_value_counts},
+            },
         }
 
     # noinspection PyUnusedLocal
     @DocInherit
     @MetaDataset.column_aggregate_expectation
     def expect_column_distinct_values_to_equal_set(
-            self,
-            column,
-            value_set,
-            parse_strings_as_datetimes=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None):
+        self,
+        column,
+        value_set,
+        parse_strings_as_datetimes=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         # noinspection PyUnresolvedReferences
         """Expect the set of distinct column values to equal a given set.
 
@@ -2188,21 +2286,23 @@ class Dataset(MetaDataset):
             "success": observed_value_set == expected_value_set,
             "result": {
                 "observed_value": sorted(list(observed_value_set)),
-                "details": {
-                    "value_counts": observed_value_counts
-                }
-            }
+                "details": {"value_counts": observed_value_counts},
+            },
         }
 
     # noinspection PyUnusedLocal
     @DocInherit
     @MetaDataset.column_aggregate_expectation
     def expect_column_distinct_values_to_contain_set(
-            self,
-            column,
-            value_set,
-            parse_strings_as_datetimes=None,
-            result_format=None, include_config=True, catch_exceptions=None, meta=None):
+        self,
+        column,
+        value_set,
+        parse_strings_as_datetimes=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
+    ):
         # noinspection PyUnresolvedReferences
         """Expect the set of distinct column values to contain a given set.
 
@@ -2276,10 +2376,8 @@ class Dataset(MetaDataset):
             "success": observed_value_set.issuperset(expected_value_set),
             "result": {
                 "observed_value": sorted(list(observed_value_set)),
-                "details": {
-                    "value_counts": observed_value_counts
-                }
-            }
+                "details": {"value_counts": observed_value_counts},
+            },
         }
 
     # noinspection PyUnusedLocal
@@ -2288,9 +2386,14 @@ class Dataset(MetaDataset):
     def expect_column_mean_to_be_between(
         self,
         column,
-        min_value=None, max_value=None,
-        strict_min=False, strict_max=False,  # tolerance=1e-9,
-        result_format=None, include_config=True, catch_exceptions=None, meta=None,
+        min_value=None,
+        max_value=None,
+        strict_min=False,
+        strict_max=False,  # tolerance=1e-9,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the column mean to be between a minimum value and a maximum value (inclusive).
 
@@ -2366,12 +2469,7 @@ class Dataset(MetaDataset):
 
         # Handle possible missing values
         if column_mean is None:
-            return {
-                'success': False,
-                'result': {
-                    'observed_value': column_mean
-                }
-            }
+            return {"success": False, "result": {"observed_value": column_mean}}
 
         if min_value is not None:
             if strict_min:
@@ -2391,12 +2489,7 @@ class Dataset(MetaDataset):
 
         success = above_min and below_max
 
-        return {
-            'success': success,
-            'result': {
-                'observed_value': column_mean
-            }
-        }
+        return {"success": success, "result": {"observed_value": column_mean}}
 
     # noinspection PyUnusedLocal
     @DocInherit
@@ -2404,9 +2497,13 @@ class Dataset(MetaDataset):
     def expect_column_median_to_be_between(
         self,
         column,
-        min_value=None, max_value=None,
-        strict_min=False, strict_max=False,  # tolerance=1e-9,
-        result_format=None, include_config=True, catch_exceptions=None,
+        min_value=None,
+        max_value=None,
+        strict_min=False,
+        strict_max=False,  # tolerance=1e-9,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
         meta=None,
     ):
         """Expect the column median to be between a minimum value and a maximum value.
@@ -2470,12 +2567,7 @@ class Dataset(MetaDataset):
         column_median = self.get_column_median(column)
 
         if column_median is None:
-            return {
-                'success': False,
-                'result': {
-                    'observed_value': None
-                }
-            }
+            return {"success": False, "result": {"observed_value": None}}
 
         # if strict_min and min_value:
         #     min_value += tolerance
@@ -2501,12 +2593,7 @@ class Dataset(MetaDataset):
 
         success = above_min and below_max
 
-        return {
-            "success": success,
-            "result": {
-                "observed_value": column_median
-            }
-        }
+        return {"success": success, "result": {"observed_value": column_median}}
 
     # noinspection PyUnusedLocal
     @DocInherit
@@ -2516,7 +2603,9 @@ class Dataset(MetaDataset):
         column,
         quantile_ranges,
         allow_relative_error=False,
-        result_format=None, include_config=True, catch_exceptions=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
         meta=None,
     ):
         # noinspection PyUnresolvedReferences
@@ -2618,9 +2707,13 @@ class Dataset(MetaDataset):
         quantiles = quantile_ranges["quantiles"]
         quantile_value_ranges = quantile_ranges["value_ranges"]
         if len(quantiles) != len(quantile_value_ranges):
-            raise ValueError("quntile_values and quantiles must have the same number of elements")
+            raise ValueError(
+                "quntile_values and quantiles must have the same number of elements"
+            )
 
-        quantile_vals = self.get_column_quantiles(column, tuple(quantiles), allow_relative_error=allow_relative_error)
+        quantile_vals = self.get_column_quantiles(
+            column, tuple(quantiles), allow_relative_error=allow_relative_error
+        )
         # We explicitly allow "None" to be interpreted as +/- infinity
         comparison_quantile_ranges = [
             [lower_bound or -np.inf, upper_bound or np.inf]
@@ -2634,26 +2727,25 @@ class Dataset(MetaDataset):
         return {
             "success": np.all(success_details),
             "result": {
-                "observed_value": {
-                    "quantiles": quantiles,
-                    "values": quantile_vals
-                },
-                "details": {
-                    "success_details": success_details
-                }
-            }
+                "observed_value": {"quantiles": quantiles, "values": quantile_vals},
+                "details": {"success_details": success_details},
+            },
         }
 
     # noinspection PyUnusedLocal
     @DocInherit
     @MetaDataset.column_aggregate_expectation
     def expect_column_stdev_to_be_between(
-            self,
-            column,
-            min_value=None, max_value=None,
-            strict_min=False, strict_max=False,  # tolerance=1e-9,
-            result_format=None, include_config=True, catch_exceptions=None,
-            meta=None
+        self,
+        column,
+        min_value=None,
+        max_value=None,
+        strict_min=False,
+        strict_max=False,  # tolerance=1e-9,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the column standard deviation to be between a minimum value and a maximum value.
         Uses sample standard deviation (normalized by N-1).
@@ -2739,12 +2831,7 @@ class Dataset(MetaDataset):
 
         success = above_min and below_max
 
-        return {
-            "success": success,
-            "result": {
-                "observed_value": column_stdev
-            }
-        }
+        return {"success": success, "result": {"observed_value": column_stdev}}
 
     # noinspection PyUnusedLocal
     @DocInherit
@@ -2752,8 +2839,11 @@ class Dataset(MetaDataset):
     def expect_column_unique_value_count_to_be_between(
         self,
         column,
-        min_value=None, max_value=None,
-        result_format=None, include_config=True, catch_exceptions=None,
+        min_value=None,
+        max_value=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
         meta=None,
     ):
         """Expect the number of unique values to be between a minimum value and a maximum value.
@@ -2809,12 +2899,7 @@ class Dataset(MetaDataset):
         unique_value_count = self.get_column_unique_count(column)
 
         if unique_value_count is None:
-            return {
-                'success': False,
-                'result': {
-                    'observed_value': unique_value_count
-                }
-            }
+            return {"success": False, "result": {"observed_value": unique_value_count}}
 
         if min_value is not None:
             above_min = unique_value_count >= min_value
@@ -2828,12 +2913,7 @@ class Dataset(MetaDataset):
 
         success = above_min and below_max
 
-        return {
-            "success": success,
-            "result": {
-                "observed_value": unique_value_count
-            }
-        }
+        return {"success": success, "result": {"observed_value": unique_value_count}}
 
     # noinspection PyUnusedLocal
     @DocInherit
@@ -2841,9 +2921,13 @@ class Dataset(MetaDataset):
     def expect_column_proportion_of_unique_values_to_be_between(
         self,
         column,
-        min_value=0, max_value=1,
-        strict_min=False, strict_max=False,  # tolerance=1e-9,
-        result_format=None, include_config=True, catch_exceptions=None,
+        min_value=0,
+        max_value=1,
+        strict_min=False,
+        strict_max=False,  # tolerance=1e-9,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
         meta=None,
     ):
         """Expect the proportion of unique values to be between a minimum value and a maximum value.
@@ -2942,12 +3026,7 @@ class Dataset(MetaDataset):
 
         success = above_min and below_max
 
-        return {
-            "success": success,
-            "result": {
-                "observed_value": proportion_unique
-            }
-        }
+        return {"success": success, "result": {"observed_value": proportion_unique}}
 
     # noinspection PyUnusedLocal
     @DocInherit
@@ -2957,7 +3036,9 @@ class Dataset(MetaDataset):
         column,
         value_set,
         ties_okay=None,
-        result_format=None, include_config=True, catch_exceptions=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
         meta=None,
     ):
         """Expect the most common value to be within the designated value set
@@ -3017,12 +3098,7 @@ class Dataset(MetaDataset):
         else:
             success = len(mode_list) == 1 and intersection_count == 1
 
-        return {
-            'success': success,
-            'result': {
-                'observed_value': mode_list
-            }
-        }
+        return {"success": success, "result": {"observed_value": mode_list}}
 
     # noinspection PyUnusedLocal
     @DocInherit
@@ -3030,10 +3106,14 @@ class Dataset(MetaDataset):
     def expect_column_sum_to_be_between(
         self,
         column,
-        min_value=None, max_value=None,
-        strict_min=False, strict_max=False,  # tolerance=1e-9,
-        result_format=None, include_config=True, catch_exceptions=None,
-        meta=None
+        min_value=None,
+        max_value=None,
+        strict_min=False,
+        strict_max=False,  # tolerance=1e-9,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the column to sum to be between an min and max value
 
@@ -3090,12 +3170,7 @@ class Dataset(MetaDataset):
 
         # Handle possible missing values
         if column_sum is None:
-            return {
-                'success': False,
-                'result': {
-                    'observed_value': column_sum
-                }
-            }
+            return {"success": False, "result": {"observed_value": column_sum}}
 
         # if strict_min and min_value:
         #     min_value += tolerance
@@ -3121,12 +3196,7 @@ class Dataset(MetaDataset):
 
         success = above_min and below_max
 
-        return {
-            'success': success,
-            'result': {
-                'observed_value': column_sum
-            }
-        }
+        return {"success": success, "result": {"observed_value": column_sum}}
 
     # noinspection PyUnusedLocal
     @DocInherit
@@ -3136,11 +3206,14 @@ class Dataset(MetaDataset):
         column,
         min_value=None,
         max_value=None,
-        strict_min=False, strict_max=False,  # tolerance=1e-9,
+        strict_min=False,
+        strict_max=False,  # tolerance=1e-9,
         parse_strings_as_datetimes=False,
         output_strftime_format=None,
-        result_format=None, include_config=True, catch_exceptions=None,
-        meta=None
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the column minimum to be between an min and max value
 
@@ -3259,12 +3332,7 @@ class Dataset(MetaDataset):
                 column_min = datetime.strftime(column_min, output_strftime_format)
             else:
                 column_min = str(column_min)
-        return {
-            'success': success,
-            'result': {
-                'observed_value': column_min
-            }
-        }
+        return {"success": success, "result": {"observed_value": column_min}}
 
     # noinspection PyUnusedLocal
     @DocInherit
@@ -3279,8 +3347,10 @@ class Dataset(MetaDataset):
         # tolerance=1e-9,
         parse_strings_as_datetimes=False,
         output_strftime_format=None,
-        result_format=None, include_config=True, catch_exceptions=None,
-        meta=None
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the column max to be between an min and max value
 
@@ -3394,12 +3464,7 @@ class Dataset(MetaDataset):
             else:
                 column_max = str(column_max)
 
-        return {
-            "success": success,
-            "result": {
-                "observed_value": column_max
-            }
-        }
+        return {"success": success, "result": {"observed_value": column_max}}
 
     ###
     #
@@ -3416,7 +3481,9 @@ class Dataset(MetaDataset):
         partition_object=None,
         p=0.05,
         tail_weight_holdout=0,
-        result_format=None, include_config=True, catch_exceptions=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
         meta=None,
     ):
         """Expect column values to be distributed similarly to the provided categorical partition. \
@@ -3486,8 +3553,14 @@ class Dataset(MetaDataset):
         element_count = self.get_column_nonnull_count(column)
         observed_frequencies = self.get_column_value_counts(column)
         # Convert to Series object to allow joining on index values
-        expected_column = pd.Series(
-            partition_object['weights'], index=partition_object['values'], name='expected') * element_count
+        expected_column = (
+            pd.Series(
+                partition_object["weights"],
+                index=partition_object["values"],
+                name="expected",
+            )
+            * element_count
+        )
         # Join along the indices to allow proper comparison of both types of possible missing values
         # Sort parameter not available before pandas 0.23.0
         # test_df = pd.concat([expected_column, observed_frequencies], axis=1, sort=True)
@@ -3503,10 +3576,10 @@ class Dataset(MetaDataset):
             test_df["expected"] = test_df["expected"] * (1 - tail_weight_holdout)
             # Fill NAs with holdout.
             test_df["expected"] = test_df["expected"].fillna(
-                element_count * (tail_weight_holdout / na_counts["expected"]))
+                element_count * (tail_weight_holdout / na_counts["expected"])
+            )
 
-        test_result = stats.chisquare(
-            test_df["count"], test_df["expected"])[1]
+        test_result = stats.chisquare(test_df["count"], test_df["expected"])[1]
 
         # Normalize the ouputs so they can be used as partitions into other expectations
         # GH653
@@ -3520,23 +3593,27 @@ class Dataset(MetaDataset):
                 "details": {
                     "observed_partition": {
                         "values": test_df.index.tolist(),
-                        "weights": observed_weights
+                        "weights": observed_weights,
                     },
                     "expected_partition": {
                         "values": test_df.index.tolist(),
-                        "weights": expected_weights
-                    }
-                }
-            }
+                        "weights": expected_weights,
+                    },
+                },
+            },
         }
 
     def expect_column_bootstrapped_ks_test_p_value_to_be_greater_than(
-            self,
-            column,
-            partition_object=None, p=0.05,
-            bootstrap_samples=None, bootstrap_sample_size=None,
-            result_format=None, include_config=True, catch_exceptions=None,
-            meta=None
+        self,
+        column,
+        partition_object=None,
+        p=0.05,
+        bootstrap_samples=None,
+        bootstrap_sample_size=None,
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect column values to be distributed similarly to the provided continuous partition. This expectation \
         compares continuous distributions using a bootstrapped Kolmogorov-Smirnov test. It returns `success=True` if \
@@ -3627,8 +3704,10 @@ class Dataset(MetaDataset):
         tail_weight_holdout=0,
         internal_weight_holdout=0,
         bucketize_data=True,
-        result_format=None, include_config=True, catch_exceptions=None,
-        meta=None
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """Expect the Kulback-Leibler (KL) divergence (relative entropy) of the specified column with respect to the \
         partition object to be lower than the provided threshold.
@@ -3728,7 +3807,7 @@ class Dataset(MetaDataset):
 
           If relative entropy/kl divergence goes to infinity for any of the reasons mentioned above, the observed value\
           will be set to None. This is because inf, -inf, Nan, are not json serializable and cause some json parsers to\
-          crash when encountered. The python None token will be serialized to null in json. 
+          crash when encountered. The python None token will be serialized to null in json.
 
         See also:
             :func:`expect_column_chisquare_test_p_value_to_be_greater_than \
@@ -3740,41 +3819,59 @@ class Dataset(MetaDataset):
         """
         if partition_object is None:
             if bucketize_data:
-                partition_object = build_continuous_partition_object(dataset=self, column=column, bins='auto')
+                partition_object = build_continuous_partition_object(
+                    dataset=self, column=column, bins="auto"
+                )
             else:
-                partition_object = build_categorical_partition_object(dataset=self, column=column)
+                partition_object = build_categorical_partition_object(
+                    dataset=self, column=column
+                )
 
         if not is_valid_partition_object(partition_object):
             raise ValueError("Invalid partition object.")
 
-        if threshold is not None and ((not isinstance(threshold, (int, float))) or (threshold < 0)):
+        if threshold is not None and (
+            (not isinstance(threshold, (int, float))) or (threshold < 0)
+        ):
             raise ValueError(
-                "Threshold must be specified, greater than or equal to zero.")
+                "Threshold must be specified, greater than or equal to zero."
+            )
 
-        if (not isinstance(tail_weight_holdout, (int, float))) or \
-                (tail_weight_holdout < 0) or (tail_weight_holdout > 1):
-            raise ValueError(
-                "tail_weight_holdout must be between zero and one.")
+        if (
+            (not isinstance(tail_weight_holdout, (int, float)))
+            or (tail_weight_holdout < 0)
+            or (tail_weight_holdout > 1)
+        ):
+            raise ValueError("tail_weight_holdout must be between zero and one.")
 
-        if (not isinstance(internal_weight_holdout, (int, float))) or \
-                (internal_weight_holdout < 0) or (internal_weight_holdout > 1):
-            raise ValueError(
-                "internal_weight_holdout must be between zero and one.")
-            
+        if (
+            (not isinstance(internal_weight_holdout, (int, float)))
+            or (internal_weight_holdout < 0)
+            or (internal_weight_holdout > 1)
+        ):
+            raise ValueError("internal_weight_holdout must be between zero and one.")
+
         if tail_weight_holdout != 0 and "tail_weights" in partition_object:
             raise ValueError(
-                "tail_weight_holdout must be 0 when using tail_weights in partition object")
+                "tail_weight_holdout must be 0 when using tail_weights in partition object"
+            )
 
         # TODO: add checks for duplicate values in is_valid_categorical_partition_object
         if is_valid_categorical_partition_object(partition_object):
             if internal_weight_holdout > 0:
                 raise ValueError(
-                    "Internal weight holdout cannot be used for discrete data.")
+                    "Internal weight holdout cannot be used for discrete data."
+                )
 
             # Data are expected to be discrete, use value_counts
-            observed_weights = self.get_column_value_counts(column) / self.get_column_nonnull_count(column)
+            observed_weights = self.get_column_value_counts(
+                column
+            ) / self.get_column_nonnull_count(column)
             expected_weights = pd.Series(
-                partition_object['weights'], index=partition_object['values'], name='expected')
+                partition_object["weights"],
+                index=partition_object["values"],
+                name="expected",
+            )
             # Sort not available before pandas 0.23.0
             # test_df = pd.concat([expected_weights, observed_weights], axis=1, sort=True)
             test_df = pd.concat([expected_weights, observed_weights], axis=1)
@@ -3785,15 +3882,15 @@ class Dataset(MetaDataset):
             pk = test_df["count"].fillna(0)
             # Handle NaN: if something's there that was not expected,
             # substitute the relevant value for tail_weight_holdout
-            if na_counts['expected'] > 0:
+            if na_counts["expected"] > 0:
                 # Scale existing expected values
-                test_df['expected'] = test_df['expected'] * \
-                    (1 - tail_weight_holdout)
+                test_df["expected"] = test_df["expected"] * (1 - tail_weight_holdout)
                 # Fill NAs with holdout.
-                qk = test_df['expected'].fillna(
-                    tail_weight_holdout / na_counts['expected'])
+                qk = test_df["expected"].fillna(
+                    tail_weight_holdout / na_counts["expected"]
+                )
             else:
-                qk = test_df['expected']
+                qk = test_df["expected"]
 
             kl_divergence = stats.entropy(pk, qk)
 
@@ -3814,14 +3911,14 @@ class Dataset(MetaDataset):
                     "details": {
                         "observed_partition": {
                             "values": test_df.index.tolist(),
-                            "weights": pk.tolist()
+                            "weights": pk.tolist(),
                         },
                         "expected_partition": {
                             "values": test_df.index.tolist(),
-                            "weights": qk.tolist()
-                        }
-                    }
-                }
+                            "weights": qk.tolist(),
+                        },
+                    },
+                },
             }
 
         else:
@@ -3832,17 +3929,19 @@ class Dataset(MetaDataset):
                     "parameter set to false."
                 )
             # Build the histogram first using expected bins so that the largest bin is >=
-            hist = np.array(self.get_column_hist(column, tuple(partition_object['bins'])))
+            hist = np.array(
+                self.get_column_hist(column, tuple(partition_object["bins"]))
+            )
             # np.histogram(column, partition_object['bins'], density=False)
-            bin_edges = partition_object['bins']
+            bin_edges = partition_object["bins"]
             # Add in the frequencies observed above or below the provided partition
             # below_partition = len(np.where(column < partition_object['bins'][0])[0])
             # above_partition = len(np.where(column > partition_object['bins'][-1])[0])
             below_partition = self.get_column_count_in_range(
-                column, max_val=partition_object['bins'][0], strict_max=True
+                column, max_val=partition_object["bins"][0], strict_max=True
             )
             above_partition = self.get_column_count_in_range(
-                column, min_val=partition_object['bins'][-1], strict_min=True
+                column, min_val=partition_object["bins"][-1], strict_min=True
             )
 
             # Observed Weights is just the histogram values divided by the total number of observations
@@ -3854,21 +3953,25 @@ class Dataset(MetaDataset):
             else:
                 partition_tail_weight_holdout = 0
 
-            expected_weights = np.array(
-                partition_object['weights']) * (1 - tail_weight_holdout - internal_weight_holdout)
+            expected_weights = np.array(partition_object["weights"]) * (
+                1 - tail_weight_holdout - internal_weight_holdout
+            )
 
             # Assign internal weight holdout values if applicable
             if internal_weight_holdout > 0:
-                zero_count = len(expected_weights) - \
-                    np.count_nonzero(expected_weights)
+                zero_count = len(expected_weights) - np.count_nonzero(expected_weights)
                 if zero_count > 0:
                     for index, value in enumerate(expected_weights):
                         if value == 0:
-                            expected_weights[index] = internal_weight_holdout / zero_count
-        
+                            expected_weights[index] = (
+                                internal_weight_holdout / zero_count
+                            )
+
             # Assign tail weight holdout if applicable
             # We need to check cases to only add tail weight holdout if it makes sense based on the provided partition.
-            if (partition_object['bins'][0] == -np.inf) and (partition_object['bins'][-1]) == np.inf:
+            if (partition_object["bins"][0] == -np.inf) and (
+                partition_object["bins"][-1]
+            ) == np.inf:
                 if tail_weight_holdout > 0:
                     raise ValueError(
                         "tail_weight_holdout cannot be used for partitions with infinite endpoints."
@@ -3879,47 +3982,61 @@ class Dataset(MetaDataset):
                     )
 
                 # Remove -inf and inf
-                expected_bins = partition_object['bins'][1:-1]
-                
+                expected_bins = partition_object["bins"][1:-1]
+
                 comb_expected_weights = expected_weights
                 # Set aside tail weights
-                expected_tail_weights = np.concatenate(([expected_weights[0]], [expected_weights[-1]]))
+                expected_tail_weights = np.concatenate(
+                    ([expected_weights[0]], [expected_weights[-1]])
+                )
                 # Remove tail weights
                 expected_weights = expected_weights[1:-1]
-                
+
                 comb_observed_weights = observed_weights
                 # Set aside tail weights
-                observed_tail_weights = np.concatenate(([observed_weights[0]], [observed_weights[-1]]))
+                observed_tail_weights = np.concatenate(
+                    ([observed_weights[0]], [observed_weights[-1]])
+                )
                 # Remove tail weights
                 observed_weights = observed_weights[1:-1]
-                
-            elif partition_object['bins'][0] == -np.inf:
-                
+
+            elif partition_object["bins"][0] == -np.inf:
+
                 if "tail_weights" in partition_object:
                     raise ValueError(
                         "There can be no tail weights for partitions with one or both endpoints at infinity"
                     )
 
                 # Remove -inf
-                expected_bins = partition_object['bins'][1:]
-                
-                comb_expected_weights = np.concatenate((expected_weights, [tail_weight_holdout]))
+                expected_bins = partition_object["bins"][1:]
+
+                comb_expected_weights = np.concatenate(
+                    (expected_weights, [tail_weight_holdout])
+                )
                 # Set aside left tail weight and holdout
-                expected_tail_weights = np.concatenate(([expected_weights[0]], [tail_weight_holdout]))
+                expected_tail_weights = np.concatenate(
+                    ([expected_weights[0]], [tail_weight_holdout])
+                )
                 # Remove left tail weight from main expected_weights
                 expected_weights = expected_weights[1:]
-                
+
                 comb_observed_weights = np.concatenate(
-                    (observed_weights, [above_partition / self.get_column_nonnull_count(column)])
+                    (
+                        observed_weights,
+                        [above_partition / self.get_column_nonnull_count(column)],
+                    )
                 )
                 # Set aside left tail weight and above partition weight
                 observed_tail_weights = np.concatenate(
-                    ([observed_weights[0]], [above_partition / self.get_column_nonnull_count(column)])
+                    (
+                        [observed_weights[0]],
+                        [above_partition / self.get_column_nonnull_count(column)],
+                    )
                 )
                 # Remove left tail weight from main observed_weights
                 observed_weights = observed_weights[1:]
-        
-            elif partition_object['bins'][-1] == np.inf:
+
+            elif partition_object["bins"][-1] == np.inf:
 
                 if "tail_weights" in partition_object:
                     raise ValueError(
@@ -3927,26 +4044,36 @@ class Dataset(MetaDataset):
                     )
 
                 # Remove inf
-                expected_bins = partition_object['bins'][:-1]
+                expected_bins = partition_object["bins"][:-1]
 
-                comb_expected_weights = np.concatenate(([tail_weight_holdout], expected_weights))
+                comb_expected_weights = np.concatenate(
+                    ([tail_weight_holdout], expected_weights)
+                )
                 # Set aside right tail weight and holdout
-                expected_tail_weights = np.concatenate(([tail_weight_holdout], [expected_weights[-1]]))
+                expected_tail_weights = np.concatenate(
+                    ([tail_weight_holdout], [expected_weights[-1]])
+                )
                 # Remove right tail weight from main expected_weights
                 expected_weights = expected_weights[:-1]
 
                 comb_observed_weights = np.concatenate(
-                    ([below_partition/self.get_column_nonnull_count(column)], observed_weights)
+                    (
+                        [below_partition / self.get_column_nonnull_count(column)],
+                        observed_weights,
+                    )
                 )
                 # Set aside right tail weight and below partition weight
                 observed_tail_weights = np.concatenate(
-                    ([below_partition/self.get_column_nonnull_count(column)], [observed_weights[-1]])
+                    (
+                        [below_partition / self.get_column_nonnull_count(column)],
+                        [observed_weights[-1]],
+                    )
                 )
                 # Remove right tail weight from main observed_weights
                 observed_weights = observed_weights[:-1]
             else:
                 # No need to remove -inf or inf
-                expected_bins = partition_object['bins']
+                expected_bins = partition_object["bins"]
 
                 if "tail_weights" in partition_object:
                     tail_weights = partition_object["tail_weights"]
@@ -3958,17 +4085,23 @@ class Dataset(MetaDataset):
                     expected_tail_weights = np.array(tail_weights)
                 else:
                     comb_expected_weights = np.concatenate(
-                        ([tail_weight_holdout / 2], expected_weights, [tail_weight_holdout / 2])
+                        (
+                            [tail_weight_holdout / 2],
+                            expected_weights,
+                            [tail_weight_holdout / 2],
+                        )
                     )
                     # Tail weights are just tail_weight holdout divided equally to both tails
                     expected_tail_weights = np.concatenate(
-                         ([tail_weight_holdout / 2], [tail_weight_holdout / 2])
+                        ([tail_weight_holdout / 2], [tail_weight_holdout / 2])
                     )
 
                 comb_observed_weights = np.concatenate(
-                    ([below_partition/self.get_column_nonnull_count(column)],
-                     observed_weights,
-                     [above_partition/self.get_column_nonnull_count(column)])
+                    (
+                        [below_partition / self.get_column_nonnull_count(column)],
+                        observed_weights,
+                        [above_partition / self.get_column_nonnull_count(column)],
+                    )
                 )
                 # Tail weights are just the counts on either side of the partition
                 observed_tail_weights = np.concatenate(
@@ -3977,8 +4110,8 @@ class Dataset(MetaDataset):
 
                 # Main expected_weights and main observed weights had no tail_weights, so nothing needs to be removed.
 
-            kl_divergence = stats.entropy(comb_observed_weights, comb_expected_weights) 
-            
+            kl_divergence = stats.entropy(comb_observed_weights, comb_expected_weights)
+
             if np.isinf(kl_divergence) or np.isnan(kl_divergence):
                 observed_value = None
             else:
@@ -3990,25 +4123,25 @@ class Dataset(MetaDataset):
                 success = kl_divergence <= threshold
 
             return_obj = {
-                    "success": success,
-                    "result": {
-                        "observed_value": observed_value,
-                        "details": {
-                            "observed_partition": {
-                                # return expected_bins, since we used those bins to compute the observed_weights
-                                "bins": expected_bins,
-                                "weights": observed_weights.tolist(),
-                                "tail_weights": observed_tail_weights.tolist()
-                            },
-                            "expected_partition": {
-                                "bins": expected_bins,
-                                "weights": expected_weights.tolist(),
-                                "tail_weights": expected_tail_weights.tolist()
-                            }
-                        }
-                    }
-                }
-                
+                "success": success,
+                "result": {
+                    "observed_value": observed_value,
+                    "details": {
+                        "observed_partition": {
+                            # return expected_bins, since we used those bins to compute the observed_weights
+                            "bins": expected_bins,
+                            "weights": observed_weights.tolist(),
+                            "tail_weights": observed_tail_weights.tolist(),
+                        },
+                        "expected_partition": {
+                            "bins": expected_bins,
+                            "weights": expected_weights.tolist(),
+                            "tail_weights": expected_tail_weights.tolist(),
+                        },
+                    },
+                },
+            }
+
         return return_obj
 
     ###
@@ -4018,11 +4151,14 @@ class Dataset(MetaDataset):
     ###
 
     def expect_column_pair_values_to_be_equal(
-            self,
-            column_A, column_B,
-            ignore_row_if="both_values_are_missing",
-            result_format=None, include_config=True, catch_exceptions=None,
-            meta=None
+        self,
+        column_A,
+        column_B,
+        ignore_row_if="both_values_are_missing",
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """
         Expect the values in column A to be the same as column B.
@@ -4058,15 +4194,17 @@ class Dataset(MetaDataset):
         raise NotImplementedError
 
     def expect_column_pair_values_A_to_be_greater_than_B(
-            self,
-            column_A,
-            column_B,
-            or_equal=None,
-            parse_strings_as_datetimes=False,
-            allow_cross_type_comparisons=None,
-            ignore_row_if="both_values_are_missing",
-            result_format=None, include_config=True, catch_exceptions=None,
-            meta=None
+        self,
+        column_A,
+        column_B,
+        or_equal=None,
+        parse_strings_as_datetimes=False,
+        allow_cross_type_comparisons=None,
+        ignore_row_if="both_values_are_missing",
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """
         Expect values in column A to be greater than column B.
@@ -4107,13 +4245,15 @@ class Dataset(MetaDataset):
         raise NotImplementedError
 
     def expect_column_pair_values_to_be_in_set(
-            self,
-            column_A,
-            column_B,
-            value_pairs_set,
-            ignore_row_if="both_values_are_missing",
-            result_format=None, include_config=True, catch_exceptions=None,
-            meta=None
+        self,
+        column_A,
+        column_B,
+        value_pairs_set,
+        ignore_row_if="both_values_are_missing",
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """
         Expect paired values from columns A and B to belong to a set of valid pairs.
@@ -4156,11 +4296,13 @@ class Dataset(MetaDataset):
     ###
 
     def expect_multicolumn_values_to_be_unique(
-            self,
-            column_list,
-            ignore_row_if="all_values_are_missing",
-            result_format=None, include_config=True, catch_exceptions=None,
-            meta=None
+        self,
+        column_list,
+        ignore_row_if="all_values_are_missing",
+        result_format=None,
+        include_config=True,
+        catch_exceptions=None,
+        meta=None,
     ):
         """
         Expect the values for each row to be unique across the columns listed.
@@ -4196,5 +4338,8 @@ class Dataset(MetaDataset):
 
     @staticmethod
     def _parse_value_set(value_set):
-        parsed_value_set = [parse(value) if isinstance(value, string_types) else value for value in value_set]
+        parsed_value_set = [
+            parse(value) if isinstance(value, string_types) else value
+            for value in value_set
+        ]
         return parsed_value_set

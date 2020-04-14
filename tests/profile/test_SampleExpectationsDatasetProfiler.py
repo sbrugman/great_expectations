@@ -7,8 +7,9 @@ import pytest
 import great_expectations as ge
 from great_expectations.data_context.util import file_relative_path
 from great_expectations.datasource import PandasDatasource
-from great_expectations.profile.sample_expectations_dataset_profiler import \
-    SampleExpectationsDatasetProfiler
+from great_expectations.profile.sample_expectations_dataset_profiler import (
+    SampleExpectationsDatasetProfiler,
+)
 from tests.test_utils import expectationSuiteValidationResultSchema
 
 
@@ -28,60 +29,51 @@ def not_empty_datacontext(empty_data_context, filesystem_csv_2):
     return empty_data_context
 
 
-def test__find_next_low_card_column(non_numeric_low_card_dataset, non_numeric_high_card_dataset):
+def test__find_next_low_card_column(
+    non_numeric_low_card_dataset, non_numeric_high_card_dataset
+):
     columns = non_numeric_low_card_dataset.get_table_columns()
     column_cache = {}
-    profiled_columns = {
-        "numeric": [],
-        "low_card": [],
-        "string": [],
-        "datetime": []
-    }
+    profiled_columns = {"numeric": [], "low_card": [], "string": [], "datetime": []}
 
     column = SampleExpectationsDatasetProfiler._find_next_low_card_column(
-        non_numeric_low_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
+        non_numeric_low_card_dataset, columns, profiled_columns, column_cache
     )
     assert column == "lowcardnonnum"
     profiled_columns["low_card"].append(column)
-    assert SampleExpectationsDatasetProfiler._find_next_low_card_column(
-        non_numeric_low_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
-    ) is None
+    assert (
+        SampleExpectationsDatasetProfiler._find_next_low_card_column(
+            non_numeric_low_card_dataset, columns, profiled_columns, column_cache
+        )
+        is None
+    )
 
     columns = non_numeric_high_card_dataset.get_table_columns()
     column_cache = {}
-    profiled_columns = {
-        "numeric": [],
-        "low_card": [],
-        "string": [],
-        "datetime": []
-    }
-    assert SampleExpectationsDatasetProfiler._find_next_low_card_column(
-        non_numeric_high_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
-    ) is None
+    profiled_columns = {"numeric": [], "low_card": [], "string": [], "datetime": []}
+    assert (
+        SampleExpectationsDatasetProfiler._find_next_low_card_column(
+            non_numeric_high_card_dataset, columns, profiled_columns, column_cache
+        )
+        is None
+    )
 
 
 def test__create_expectations_for_low_card_column(non_numeric_low_card_dataset):
     column = "lowcardnonnum"
     column_cache = {}
 
-    expectation_suite = non_numeric_low_card_dataset.get_expectation_suite(suppress_warnings=True)
+    expectation_suite = non_numeric_low_card_dataset.get_expectation_suite(
+        suppress_warnings=True
+    )
     assert len(expectation_suite.expectations) == 1
 
     SampleExpectationsDatasetProfiler._create_expectations_for_low_card_column(
-        non_numeric_low_card_dataset,
-        column,
-        column_cache
+        non_numeric_low_card_dataset, column, column_cache
     )
-    expectation_suite = non_numeric_low_card_dataset.get_expectation_suite(suppress_warnings=True)
+    expectation_suite = non_numeric_low_card_dataset.get_expectation_suite(
+        suppress_warnings=True
+    )
     assert set(
         [
             expectation.expectation_type
@@ -89,65 +81,59 @@ def test__create_expectations_for_low_card_column(non_numeric_low_card_dataset):
             if expectation.kwargs.get("column") == column
         ]
     ) == {
-            "expect_column_to_exist",
-            'expect_column_distinct_values_to_be_in_set',
-            "expect_column_kl_divergence_to_be_less_than",
-            "expect_column_values_to_not_be_null",
+        "expect_column_to_exist",
+        "expect_column_distinct_values_to_be_in_set",
+        "expect_column_kl_divergence_to_be_less_than",
+        "expect_column_values_to_not_be_null",
     }
 
 
-def test__find_next_numeric_column(numeric_high_card_dataset, non_numeric_low_card_dataset):
+def test__find_next_numeric_column(
+    numeric_high_card_dataset, non_numeric_low_card_dataset
+):
     columns = numeric_high_card_dataset.get_table_columns()
     column_cache = {}
-    profiled_columns = {
-        "numeric": [],
-        "low_card": [],
-        "string": [],
-        "datetime": []
-    }
+    profiled_columns = {"numeric": [], "low_card": [], "string": [], "datetime": []}
 
     column = SampleExpectationsDatasetProfiler._find_next_numeric_column(
-        numeric_high_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
+        numeric_high_card_dataset, columns, profiled_columns, column_cache
     )
     assert column == "norm_0_1"
     profiled_columns["numeric"].append(column)
-    assert SampleExpectationsDatasetProfiler._find_next_numeric_column(
-        numeric_high_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
-    ) is None
+    assert (
+        SampleExpectationsDatasetProfiler._find_next_numeric_column(
+            numeric_high_card_dataset, columns, profiled_columns, column_cache
+        )
+        is None
+    )
 
     columns = non_numeric_low_card_dataset.get_table_columns()
     column_cache = {}
-    profiled_columns = {
-        "numeric": [],
-        "low_card": [],
-        "string": [],
-        "datetime": []
-    }
-    assert SampleExpectationsDatasetProfiler._find_next_numeric_column(
-        non_numeric_low_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
-    ) is None
+    profiled_columns = {"numeric": [], "low_card": [], "string": [], "datetime": []}
+    assert (
+        SampleExpectationsDatasetProfiler._find_next_numeric_column(
+            non_numeric_low_card_dataset, columns, profiled_columns, column_cache
+        )
+        is None
+    )
 
 
-def test__create_expectations_for_numeric_column(numeric_high_card_dataset, test_backend):
+def test__create_expectations_for_numeric_column(
+    numeric_high_card_dataset, test_backend
+):
     column = "norm_0_1"
 
-    expectation_suite = numeric_high_card_dataset.get_expectation_suite(suppress_warnings=True)
+    expectation_suite = numeric_high_card_dataset.get_expectation_suite(
+        suppress_warnings=True
+    )
     assert len(expectation_suite.expectations) == 1
 
     SampleExpectationsDatasetProfiler._create_expectations_for_numeric_column(
-        numeric_high_card_dataset,
-        column
+        numeric_high_card_dataset, column
     )
-    expectation_suite = numeric_high_card_dataset.get_expectation_suite(suppress_warnings=True)
+    expectation_suite = numeric_high_card_dataset.get_expectation_suite(
+        suppress_warnings=True
+    )
     if test_backend in ["PandasDataset", "SparkDFDataset", "postgresql"]:
         assert set(
             [
@@ -162,7 +148,7 @@ def test__create_expectations_for_numeric_column(numeric_high_card_dataset, test
             "expect_column_mean_to_be_between",
             "expect_column_median_to_be_between",
             "expect_column_quantile_values_to_be_between",
-            "expect_column_values_to_not_be_null"
+            "expect_column_values_to_not_be_null",
         }
     else:
         assert set(
@@ -172,69 +158,61 @@ def test__create_expectations_for_numeric_column(numeric_high_card_dataset, test
                 if expectation.kwargs.get("column") == column
             ]
         ) == {
-                   "expect_column_to_exist",
-                   "expect_column_min_to_be_between",
-                   "expect_column_max_to_be_between",
-                   "expect_column_mean_to_be_between",
-                   "expect_column_median_to_be_between",
-                   "expect_column_values_to_not_be_null"
-               }
+            "expect_column_to_exist",
+            "expect_column_min_to_be_between",
+            "expect_column_max_to_be_between",
+            "expect_column_mean_to_be_between",
+            "expect_column_median_to_be_between",
+            "expect_column_values_to_not_be_null",
+        }
 
 
-def test__find_next_string_column(non_numeric_high_card_dataset, non_numeric_low_card_dataset):
+def test__find_next_string_column(
+    non_numeric_high_card_dataset, non_numeric_low_card_dataset
+):
     columns = non_numeric_high_card_dataset.get_table_columns()
     column_cache = {}
-    profiled_columns = {
-        "numeric": [],
-        "low_card": [],
-        "string": [],
-        "datetime": []
-    }
+    profiled_columns = {"numeric": [], "low_card": [], "string": [], "datetime": []}
 
     column = SampleExpectationsDatasetProfiler._find_next_string_column(
-        non_numeric_high_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
+        non_numeric_high_card_dataset, columns, profiled_columns, column_cache
     )
     expected_columns = ["highcardnonnum", "medcardnonnum"]
     assert column in expected_columns
     profiled_columns["string"].append(column)
     expected_columns.remove(column)
-    assert SampleExpectationsDatasetProfiler._find_next_string_column(
-        non_numeric_high_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
-    ) in expected_columns
+    assert (
+        SampleExpectationsDatasetProfiler._find_next_string_column(
+            non_numeric_high_card_dataset, columns, profiled_columns, column_cache
+        )
+        in expected_columns
+    )
 
     columns = non_numeric_low_card_dataset.get_table_columns()
     column_cache = {}
-    profiled_columns = {
-        "numeric": [],
-        "low_card": [],
-        "string": [],
-        "datetime": []
-    }
-    assert SampleExpectationsDatasetProfiler._find_next_string_column(
-        non_numeric_low_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
-    ) is None
+    profiled_columns = {"numeric": [], "low_card": [], "string": [], "datetime": []}
+    assert (
+        SampleExpectationsDatasetProfiler._find_next_string_column(
+            non_numeric_low_card_dataset, columns, profiled_columns, column_cache
+        )
+        is None
+    )
 
 
 def test__create_expectations_for_string_column(non_numeric_high_card_dataset):
     column = "highcardnonnum"
 
-    expectation_suite = non_numeric_high_card_dataset.get_expectation_suite(suppress_warnings=True)
+    expectation_suite = non_numeric_high_card_dataset.get_expectation_suite(
+        suppress_warnings=True
+    )
     assert len(expectation_suite.expectations) == 2
 
     SampleExpectationsDatasetProfiler._create_expectations_for_string_column(
-        non_numeric_high_card_dataset,
-        column
+        non_numeric_high_card_dataset, column
     )
-    expectation_suite = non_numeric_high_card_dataset.get_expectation_suite(suppress_warnings=True)
+    expectation_suite = non_numeric_high_card_dataset.get_expectation_suite(
+        suppress_warnings=True
+    )
     assert set(
         [
             expectation.expectation_type
@@ -244,49 +222,36 @@ def test__create_expectations_for_string_column(non_numeric_high_card_dataset):
     ) == {
         "expect_column_to_exist",
         "expect_column_values_to_not_be_null",
-        "expect_column_value_lengths_to_be_between"
+        "expect_column_value_lengths_to_be_between",
     }
 
 
 def test__find_next_datetime_column(datetime_dataset, numeric_high_card_dataset):
     columns = datetime_dataset.get_table_columns()
     column_cache = {}
-    profiled_columns = {
-        "numeric": [],
-        "low_card": [],
-        "string": [],
-        "datetime": []
-    }
+    profiled_columns = {"numeric": [], "low_card": [], "string": [], "datetime": []}
 
     column = SampleExpectationsDatasetProfiler._find_next_datetime_column(
-        datetime_dataset,
-        columns,
-        profiled_columns,
-        column_cache
+        datetime_dataset, columns, profiled_columns, column_cache
     )
     assert column == "datetime"
     profiled_columns["datetime"].append(column)
-    assert SampleExpectationsDatasetProfiler._find_next_datetime_column(
-        datetime_dataset,
-        columns,
-        profiled_columns,
-        column_cache
-    ) is None
+    assert (
+        SampleExpectationsDatasetProfiler._find_next_datetime_column(
+            datetime_dataset, columns, profiled_columns, column_cache
+        )
+        is None
+    )
 
     columns = numeric_high_card_dataset.get_table_columns()
     column_cache = {}
-    profiled_columns = {
-        "numeric": [],
-        "low_card": [],
-        "string": [],
-        "datetime": []
-    }
-    assert SampleExpectationsDatasetProfiler._find_next_datetime_column(
-        numeric_high_card_dataset,
-        columns,
-        profiled_columns,
-        column_cache
-    ) is None
+    profiled_columns = {"numeric": [], "low_card": [], "string": [], "datetime": []}
+    assert (
+        SampleExpectationsDatasetProfiler._find_next_datetime_column(
+            numeric_high_card_dataset, columns, profiled_columns, column_cache
+        )
+        is None
+    )
 
 
 def test__create_expectations_for_datetime_column(datetime_dataset):
@@ -296,8 +261,7 @@ def test__create_expectations_for_datetime_column(datetime_dataset):
     assert len(expectation_suite.expectations) == 1
 
     SampleExpectationsDatasetProfiler._create_expectations_for_datetime_column(
-        datetime_dataset,
-        column
+        datetime_dataset, column
     )
     expectation_suite = datetime_dataset.get_expectation_suite(suppress_warnings=True)
     assert set(
@@ -309,7 +273,7 @@ def test__create_expectations_for_datetime_column(datetime_dataset):
     ) == {
         "expect_column_to_exist",
         "expect_column_values_to_be_between",
-        "expect_column_values_to_not_be_null"
+        "expect_column_values_to_not_be_null",
     }
 
 
@@ -318,13 +282,17 @@ def test_SampleExpectationsDatasetProfiler_with_context(not_empty_datacontext):
 
     context.create_expectation_suite("default")
     datasource = context.datasources["rad_datasource"]
-    base_dir = datasource.config["batch_kwargs_generators"]["subdir_reader"]["base_directory"]
+    base_dir = datasource.config["batch_kwargs_generators"]["subdir_reader"][
+        "base_directory"
+    ]
     batch_kwargs = {
         "datasource": "rad_datasource",
         "path": os.path.join(base_dir, "f1.csv"),
     }
     batch = context.get_batch(batch_kwargs, "default")
-    expectation_suite, validation_results = SampleExpectationsDatasetProfiler.profile(batch)
+    expectation_suite, validation_results = SampleExpectationsDatasetProfiler.profile(
+        batch
+    )
 
     assert expectation_suite.expectation_suite_name == "default"
     assert "SampleExpectationsDatasetProfiler" in expectation_suite.meta
@@ -334,7 +302,8 @@ def test_SampleExpectationsDatasetProfiler_with_context(not_empty_datacontext):
         "batch_kwargs",
     }
     assert (
-            expectation_suite.meta["SampleExpectationsDatasetProfiler"]["batch_kwargs"] == batch_kwargs
+        expectation_suite.meta["SampleExpectationsDatasetProfiler"]["batch_kwargs"]
+        == batch_kwargs
     )
     for exp in expectation_suite.expectations:
         assert "SampleExpectationsDatasetProfiler" in exp.meta
@@ -358,16 +327,25 @@ def test_SampleExpectationsDatasetProfiler_with_context(not_empty_datacontext):
 - This is **not a production suite**. It is meant to show examples of expectations.
 - Because this suite was auto-generated using a very basic profiler that does not know your data like you do, many of the expectations may not be meaningful.
 """
-        ]
+        ],
     }
 
-    expectation_types = [expectation["expectation_type"] for expectation in expectation_suite.expectations]
+    expectation_types = [
+        expectation["expectation_type"]
+        for expectation in expectation_suite.expectations
+    ]
 
-    expected_expectation_types = {'expect_table_row_count_to_be_between', 'expect_table_column_count_to_equal',
-                                  'expect_table_columns_to_match_ordered_list', 'expect_column_values_to_not_be_null',
-                                  'expect_column_min_to_be_between', 'expect_column_max_to_be_between',
-                                  'expect_column_mean_to_be_between', 'expect_column_median_to_be_between',
-                                  'expect_column_quantile_values_to_be_between'}
+    expected_expectation_types = {
+        "expect_table_row_count_to_be_between",
+        "expect_table_column_count_to_equal",
+        "expect_table_columns_to_match_ordered_list",
+        "expect_column_values_to_not_be_null",
+        "expect_column_min_to_be_between",
+        "expect_column_max_to_be_between",
+        "expect_column_mean_to_be_between",
+        "expect_column_median_to_be_between",
+        "expect_column_quantile_values_to_be_between",
+    }
 
     assert set(expectation_types) == expected_expectation_types
 
@@ -381,11 +359,15 @@ def test_context_profiler(not_empty_datacontext):
 
     assert isinstance(context.datasources["rad_datasource"], PandasDatasource)
     assert context.list_expectation_suites() == []
-    context.profile_datasource("rad_datasource", profiler=SampleExpectationsDatasetProfiler)
+    context.profile_datasource(
+        "rad_datasource", profiler=SampleExpectationsDatasetProfiler
+    )
 
     assert len(context.list_expectation_suites()) == 1
 
-    expected_suite_name = "rad_datasource.subdir_reader.f1.SampleExpectationsDatasetProfiler"
+    expected_suite_name = (
+        "rad_datasource.subdir_reader.f1.SampleExpectationsDatasetProfiler"
+    )
     expectation_suite = context.get_expectation_suite(expected_suite_name)
 
     for exp in expectation_suite.expectations:
@@ -404,16 +386,25 @@ def test_context_profiler(not_empty_datacontext):
 - This is **not a production suite**. It is meant to show examples of expectations.
 - Because this suite was auto-generated using a very basic profiler that does not know your data like you do, many of the expectations may not be meaningful.
 """
-        ]
+        ],
     }
 
-    expectation_types = [expectation["expectation_type"] for expectation in expectation_suite.expectations]
+    expectation_types = [
+        expectation["expectation_type"]
+        for expectation in expectation_suite.expectations
+    ]
 
-    expected_expectation_types = {'expect_table_row_count_to_be_between', 'expect_table_column_count_to_equal',
-                                  'expect_table_columns_to_match_ordered_list', 'expect_column_values_to_not_be_null',
-                                  'expect_column_min_to_be_between', 'expect_column_max_to_be_between',
-                                  'expect_column_mean_to_be_between', 'expect_column_median_to_be_between',
-                                  'expect_column_quantile_values_to_be_between'}
+    expected_expectation_types = {
+        "expect_table_row_count_to_be_between",
+        "expect_table_column_count_to_equal",
+        "expect_table_columns_to_match_ordered_list",
+        "expect_column_values_to_not_be_null",
+        "expect_column_min_to_be_between",
+        "expect_column_max_to_be_between",
+        "expect_column_mean_to_be_between",
+        "expect_column_median_to_be_between",
+        "expect_column_quantile_values_to_be_between",
+    }
 
     assert set(expectation_types) == expected_expectation_types
 
@@ -443,10 +434,11 @@ def test_snapshot_SampleExpectationsDatasetProfiler_on_titanic():
     #     json.dump(expectationSuiteValidationResultSchema.dump(evrs), file, indent=2)
 
     with open(
-            file_relative_path(
-                __file__, "../test_sets/expected_evrs_SampleExpectationsDatasetProfiler_on_titanic.json"
-            ),
-            "r",
+        file_relative_path(
+            __file__,
+            "../test_sets/expected_evrs_SampleExpectationsDatasetProfiler_on_titanic.json",
+        ),
+        "r",
     ) as file:
         expected_evrs = expectationSuiteValidationResultSchema.load(
             json.load(file, object_pairs_hook=OrderedDict)

@@ -16,7 +16,7 @@
 
 from .configurations import (
     # Config,
-    ClassConfig
+    ClassConfig,
 )
 
 

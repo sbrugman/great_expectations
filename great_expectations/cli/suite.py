@@ -10,13 +10,17 @@ from great_expectations import exceptions as ge_exceptions
 from great_expectations.cli.datasource import (
     create_expectation_suite as create_expectation_suite_impl,
 )
-from great_expectations.cli.datasource import (
-    get_batch_kwargs,
-    select_datasource,
+from great_expectations.cli.datasource import get_batch_kwargs, select_datasource
+from great_expectations.cli.util import (
+    cli_message,
+    load_expectation_suite,
+    cli_message_list,
 )
-from great_expectations.cli.util import cli_message, load_expectation_suite, cli_message_list
-from great_expectations.core.usage_statistics.usage_statistics import send_usage_message, _anonymizers, \
-    edit_expectation_suite_usage_statistics
+from great_expectations.core.usage_statistics.usage_statistics import (
+    send_usage_message,
+    _anonymizers,
+    edit_expectation_suite_usage_statistics,
+)
 from great_expectations.data_asset import DataAsset
 from great_expectations.render.renderer.notebook_renderer import NotebookRenderer
 
@@ -48,7 +52,7 @@ def suite():
     "--batch-kwargs",
     default=None,
     help="""Batch_kwargs that specify the batch of data to be used a sample when editing the suite. Must be a valid JSON dictionary.
-Make sure to escape quotes. Example: "{\"datasource\": \"my_db\", \"query\": \"select * from my_table\"}"    
+Make sure to escape quotes. Example: "{\"datasource\": \"my_db\", \"query\": \"select * from my_table\"}"
 """,
 )
 @click.option(
@@ -107,9 +111,7 @@ def _suite_edit(suite, datasource, directory, jupyter, batch_kwargs):
                     )
                 )
                 send_usage_message(
-                    data_context=context,
-                    event="cli.suite.edit",
-                    success=False
+                    data_context=context, event="cli.suite.edit", success=False
                 )
                 sys.exit(1)
             except ge_exceptions.DataContextError:
@@ -117,9 +119,7 @@ def _suite_edit(suite, datasource, directory, jupyter, batch_kwargs):
                     "<red>Please check that your batch_kwargs are able to load a batch.</red>"
                 )
                 send_usage_message(
-                    data_context=context,
-                    event="cli.suite.edit",
-                    success=False
+                    data_context=context, event="cli.suite.edit", success=False
                 )
                 sys.exit(1)
             except ValueError as ve:
@@ -129,9 +129,7 @@ def _suite_edit(suite, datasource, directory, jupyter, batch_kwargs):
                     )
                 )
                 send_usage_message(
-                    data_context=context,
-                    event="cli.suite.edit",
-                    success=False
+                    data_context=context, event="cli.suite.edit", success=False
                 )
                 sys.exit(1)
         elif citations:
@@ -140,7 +138,7 @@ def _suite_edit(suite, datasource, directory, jupyter, batch_kwargs):
 
         if not batch_kwargs:
             cli_message(
-            """
+                """
 A batch of data is required to edit the suite - let's help you to specify it."""
             )
 
@@ -150,18 +148,14 @@ A batch of data is required to edit the suite - let's help you to specify it."""
             except ValueError as ve:
                 cli_message("<red>{}</red>".format(ve))
                 send_usage_message(
-                    data_context=context,
-                    event="cli.suite.edit",
-                    success=False
+                    data_context=context, event="cli.suite.edit", success=False
                 )
                 sys.exit(1)
 
             if not data_source:
                 cli_message("<red>No datasources found in the context.</red>")
                 send_usage_message(
-                    data_context=context,
-                    event="cli.suite.edit",
-                    success=False
+                    data_context=context, event="cli.suite.edit", success=False
                 )
                 sys.exit(1)
 
@@ -187,30 +181,27 @@ A batch of data is required to edit the suite - let's help you to specify it."""
         NotebookRenderer().render_to_disk(suite, notebook_path, batch_kwargs)
 
         if not jupyter:
-            cli_message("To continue editing this suite, run <green>jupyter "
-                        f"notebook {notebook_path}</green>")
+            cli_message(
+                "To continue editing this suite, run <green>jupyter "
+                f"notebook {notebook_path}</green>"
+            )
 
         payload = edit_expectation_suite_usage_statistics(
-            data_context=context,
-            expectation_suite_name=suite.expectation_suite_name
+            data_context=context, expectation_suite_name=suite.expectation_suite_name
         )
 
         send_usage_message(
             data_context=context,
             event="cli.suite.edit",
             event_payload=payload,
-            success=True
+            success=True,
         )
 
         if jupyter:
             subprocess.call(["jupyter", "notebook", notebook_path])
 
     except Exception as e:
-        send_usage_message(
-            data_context=context,
-            event="cli.suite.edit",
-            success=False
-        )
+        send_usage_message(data_context=context, event="cli.suite.edit", success=False)
         raise e
 
 
@@ -282,19 +273,23 @@ def suite_new(suite, directory, empty, jupyter, view, batch_kwargs):
             )
             if empty:
                 if jupyter:
-                    cli_message("""<green>Because you requested an empty suite, we'll open a notebook for you now to edit it!
-If you wish to avoid this you can add the `--no-jupyter` flag.</green>\n\n""")
-                _suite_edit(suite_name, datasource_name, directory, jupyter=jupyter, batch_kwargs=batch_kwargs)
+                    cli_message(
+                        """<green>Because you requested an empty suite, we'll open a notebook for you now to edit it!
+If you wish to avoid this you can add the `--no-jupyter` flag.</green>\n\n"""
+                    )
+                _suite_edit(
+                    suite_name,
+                    datasource_name,
+                    directory,
+                    jupyter=jupyter,
+                    batch_kwargs=batch_kwargs,
+                )
             send_usage_message(
-                data_context=context,
-                event="cli.suite.new",
-                success=True
+                data_context=context, event="cli.suite.new", success=True
             )
         else:
             send_usage_message(
-                data_context=context,
-                event="cli.suite.new",
-                success=False
+                data_context=context, event="cli.suite.new", success=False
             )
     except (
         ge_exceptions.DataContextError,
@@ -303,18 +298,10 @@ If you wish to avoid this you can add the `--no-jupyter` flag.</green>\n\n""")
         SQLAlchemyError,
     ) as e:
         cli_message("<red>{}</red>".format(e))
-        send_usage_message(
-            data_context=context,
-            event="cli.suite.new",
-            success=False
-        )
+        send_usage_message(data_context=context, event="cli.suite.new", success=False)
         sys.exit(1)
     except Exception as e:
-        send_usage_message(
-            data_context=context,
-            event="cli.suite.new",
-            success=False
-        )
+        send_usage_message(data_context=context, event="cli.suite.new", success=False)
         raise e
 
 
@@ -341,9 +328,7 @@ def suite_list(directory):
         if len(suite_names) == 0:
             cli_message("No Expectation Suites found")
             send_usage_message(
-                data_context=context,
-                event="cli.suite.list",
-                success=True
+                data_context=context, event="cli.suite.list", success=True
             )
             return
 
@@ -354,15 +339,7 @@ def suite_list(directory):
             list_intro_string = "{} Expectation Suites found:".format(len(suite_names))
 
         cli_message_list(suite_names, list_intro_string)
-        send_usage_message(
-            data_context=context,
-            event="cli.suite.list",
-            success=True
-        )
+        send_usage_message(data_context=context, event="cli.suite.list", success=True)
     except Exception as e:
-        send_usage_message(
-            data_context=context,
-            event="cli.suite.list",
-            success=False
-        )
+        send_usage_message(data_context=context, event="cli.suite.list", success=False)
         raise e

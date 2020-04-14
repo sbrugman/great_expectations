@@ -19,15 +19,15 @@ def test_store_list_with_zero_stores(caplog, empty_data_context):
 
     with pytest.raises(InvalidConfigurationYamlError):
         runner.invoke(
-            cli, "store list -d {}".format(project_dir), catch_exceptions=False,
+            cli, "store list -d {}".format(project_dir), catch_exceptions=False
         )
 
 
 def test_store_list_with_one_store(caplog, empty_data_context):
     project_dir = empty_data_context.root_directory
     context = DataContext(project_dir)
-    del(context._project_config.stores)["validations_store"]
-    del(context._project_config.stores)["evaluation_parameter_store"]
+    del (context._project_config.stores)["validations_store"]
+    del (context._project_config.stores)["evaluation_parameter_store"]
     context._project_config.validations_store_name = "expectations_store"
     context._project_config.evaluation_parameter_store_name = "expectations_store"
     context._save_project_config()
@@ -44,7 +44,7 @@ def test_store_list_with_one_store(caplog, empty_data_context):
      [36mbase_directory:[0m expectations/[0m"""
 
     result = runner.invoke(
-        cli, "store list -d {}".format(project_dir), catch_exceptions=False,
+        cli, "store list -d {}".format(project_dir), catch_exceptions=False
     )
 
     assert result.exit_code == 0
@@ -76,7 +76,7 @@ def test_store_list_with_multiple_stores(caplog, empty_data_context):
    [36mclass_name:[0m EvaluationParameterStore[0m"""
 
     result = runner.invoke(
-        cli, "store list -d {}".format(project_dir), catch_exceptions=False,
+        cli, "store list -d {}".format(project_dir), catch_exceptions=False
     )
     print(result.output)
     assert result.exit_code == 0

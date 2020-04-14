@@ -8,6 +8,7 @@ class DataContextKey(object):
     A DataContextKey is designed to support clear naming with multiple representations including a hashable
     version making it suitable for use as the key in a dictionary.
     """
+
     @abstractmethod
     def to_tuple(self):
         pass

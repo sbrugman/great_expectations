@@ -42,7 +42,9 @@ class StoreBackend(object):
     def get_url_for_key(self, key, protocol=None):
         raise NotImplementedError(
             "Store backend of type {0:s} does not have an implementation of get_url_for_key".format(
-                type(self).__name__))
+                type(self).__name__
+            )
+        )
 
     def _validate_key(self, key):
         if isinstance(key, tuple):
@@ -50,16 +52,15 @@ class StoreBackend(object):
                 if not isinstance(key_element, string_types):
                     raise TypeError(
                         "Elements within tuples passed as keys to {0} must be instances of {1}, not {2}".format(
-                            self.__class__.__name__,
-                            string_types,
-                            type(key_element),
-                        ))
+                            self.__class__.__name__, string_types, type(key_element)
+                        )
+                    )
         else:
-            raise TypeError("Keys in {0} must be instances of {1}, not {2}".format(
-                self.__class__.__name__,
-                tuple,
-                type(key),
-            ))
+            raise TypeError(
+                "Keys in {0} must be instances of {1}, not {2}".format(
+                    self.__class__.__name__, tuple, type(key)
+                )
+            )
 
     def _validate_value(self, value):
         pass
@@ -103,7 +104,7 @@ class InMemoryStoreBackend(StoreBackend):
         self._store[key] = value
 
     def list_keys(self, prefix=()):
-        return [key for key in self._store.keys() if key[:len(prefix)] == prefix]
+        return [key for key in self._store.keys() if key[: len(prefix)] == prefix]
 
     def _has_key(self, key):
         return key in self._store

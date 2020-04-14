@@ -34,11 +34,12 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
             column_type = cls._get_column_type(dataset, column_name)
             column_cache_entry["type"] = column_type
             # remove the expectation
-            dataset.remove_expectation(expectation_type="expect_column_values_to_be_in_type_list")
-            dataset.set_config_value('interactive_evaluation', True)
+            dataset.remove_expectation(
+                expectation_type="expect_column_values_to_be_in_type_list"
+            )
+            dataset.set_config_value("interactive_evaluation", True)
 
         return column_type
-
 
     @classmethod
     def _get_column_cardinality_with_caching(cls, dataset, column_name, cache):
@@ -51,9 +52,13 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
             column_cardinality = cls._get_column_cardinality(dataset, column_name)
             column_cache_entry["cardinality"] = column_cardinality
             # remove the expectations
-            dataset.remove_expectation(expectation_type="expect_column_unique_value_count_to_be_between")
-            dataset.remove_expectation(expectation_type="expect_column_proportion_of_unique_values_to_be_between")
-            dataset.set_config_value('interactive_evaluation', True)
+            dataset.remove_expectation(
+                expectation_type="expect_column_unique_value_count_to_be_between"
+            )
+            dataset.remove_expectation(
+                expectation_type="expect_column_proportion_of_unique_values_to_be_between"
+            )
+            dataset.set_config_value("interactive_evaluation", True)
 
         return column_cardinality
 
@@ -61,15 +66,24 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
     def _create_expectations_for_low_card_column(cls, dataset, column, column_cache):
         cls._create_non_nullity_expectations(dataset, column)
 
-        value_set = \
-        dataset.expect_column_distinct_values_to_be_in_set(column, value_set=None, result_format="SUMMARY").result[
-            "observed_value"]
-        dataset.expect_column_distinct_values_to_be_in_set(column, value_set=value_set, result_format="SUMMARY")
+        value_set = dataset.expect_column_distinct_values_to_be_in_set(
+            column, value_set=None, result_format="SUMMARY"
+        ).result["observed_value"]
+        dataset.expect_column_distinct_values_to_be_in_set(
+            column, value_set=value_set, result_format="SUMMARY"
+        )
 
-        if cls._get_column_cardinality_with_caching(dataset, column, column_cache) in ["two", "very few"]:
+        if cls._get_column_cardinality_with_caching(dataset, column, column_cache) in [
+            "two",
+            "very few",
+        ]:
             partition_object = build_categorical_partition_object(dataset, column)
-            dataset.expect_column_kl_divergence_to_be_less_than(column, partition_object=partition_object,
-                                                                threshold=0.6, catch_exceptions=True)
+            dataset.expect_column_kl_divergence_to_be_less_than(
+                column,
+                partition_object=partition_object,
+                threshold=0.6,
+                catch_exceptions=True,
+            )
 
     @classmethod
     def _create_non_nullity_expectations(cls, dataset, column):
@@ -83,23 +97,33 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
     def _create_expectations_for_numeric_column(cls, dataset, column):
         cls._create_non_nullity_expectations(dataset, column)
 
-        value = \
-        dataset.expect_column_min_to_be_between(column, min_value=None, max_value=None, result_format="SUMMARY").result[
-            "observed_value"]
-        value = dataset.expect_column_min_to_be_between(column, min_value=value - 1, max_value=value + 1)
+        value = dataset.expect_column_min_to_be_between(
+            column, min_value=None, max_value=None, result_format="SUMMARY"
+        ).result["observed_value"]
+        value = dataset.expect_column_min_to_be_between(
+            column, min_value=value - 1, max_value=value + 1
+        )
 
-        value = \
-        dataset.expect_column_max_to_be_between(column, min_value=None, max_value=None, result_format="SUMMARY").result[
-            "observed_value"]
-        value = dataset.expect_column_max_to_be_between(column, min_value=value - 1, max_value=value + 1)
+        value = dataset.expect_column_max_to_be_between(
+            column, min_value=None, max_value=None, result_format="SUMMARY"
+        ).result["observed_value"]
+        value = dataset.expect_column_max_to_be_between(
+            column, min_value=value - 1, max_value=value + 1
+        )
 
-        value = dataset.expect_column_mean_to_be_between(column, min_value=None, max_value=None,
-                                                         result_format="SUMMARY").result["observed_value"]
-        dataset.expect_column_mean_to_be_between(column, min_value=value - 1, max_value=value + 1)
+        value = dataset.expect_column_mean_to_be_between(
+            column, min_value=None, max_value=None, result_format="SUMMARY"
+        ).result["observed_value"]
+        dataset.expect_column_mean_to_be_between(
+            column, min_value=value - 1, max_value=value + 1
+        )
 
-        value = dataset.expect_column_median_to_be_between(column, min_value=None, max_value=None,
-                                                           result_format="SUMMARY").result["observed_value"]
-        dataset.expect_column_median_to_be_between(column, min_value=value - 1, max_value=value + 1)
+        value = dataset.expect_column_median_to_be_between(
+            column, min_value=None, max_value=None, result_format="SUMMARY"
+        ).result["observed_value"]
+        dataset.expect_column_median_to_be_between(
+            column, min_value=value - 1, max_value=value + 1
+        )
 
         result = dataset.expect_column_quantile_values_to_be_between(
             column,
@@ -114,60 +138,72 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
                 ],
             },
             result_format="SUMMARY",
-            catch_exceptions=True
+            catch_exceptions=True,
         )
         if result.exception_info and (
-                result.exception_info["exception_traceback"]
-                or result.exception_info["exception_message"]
+            result.exception_info["exception_traceback"]
+            or result.exception_info["exception_message"]
         ):
             # TODO quantiles are not implemented correctly on sqlite, and likely other sql dialects
             logger.debug(result.exception_info["exception_traceback"])
             logger.debug(result.exception_info["exception_message"])
         else:
-            dataset.set_config_value('interactive_evaluation', False)
+            dataset.set_config_value("interactive_evaluation", False)
             dataset.expect_column_quantile_values_to_be_between(
                 column,
                 quantile_ranges={
                     "quantiles": result.result["observed_value"]["quantiles"],
                     "value_ranges": [
-                        [v - 1, v + 1] for v in
-                        result.result["observed_value"]["values"]
+                        [v - 1, v + 1]
+                        for v in result.result["observed_value"]["values"]
                     ],
                 },
-                catch_exceptions=True
+                catch_exceptions=True,
             )
-            dataset.set_config_value('interactive_evaluation', True)
+            dataset.set_config_value("interactive_evaluation", True)
 
     @classmethod
     def _create_expectations_for_string_column(cls, dataset, column):
         cls._create_non_nullity_expectations(dataset, column)
         dataset.expect_column_value_lengths_to_be_between(column, min_value=1)
 
-
     @classmethod
-    def _find_next_low_card_column(cls, dataset, columns, profiled_columns, column_cache):
+    def _find_next_low_card_column(
+        cls, dataset, columns, profiled_columns, column_cache
+    ):
         for column in columns:
             if column in profiled_columns["low_card"]:
                 continue
-            cardinality = cls._get_column_cardinality_with_caching(dataset, column, column_cache)
+            cardinality = cls._get_column_cardinality_with_caching(
+                dataset, column, column_cache
+            )
             if cardinality in ["two", "very few", "few"]:
                 return column
 
         return None
 
-
     @classmethod
-    def _find_next_numeric_column(cls, dataset, columns, profiled_columns, column_cache):
+    def _find_next_numeric_column(
+        cls, dataset, columns, profiled_columns, column_cache
+    ):
         for column in columns:
             if column in profiled_columns["numeric"]:
                 continue
-            if column.lower().strip() == "id" or column.lower().strip().find("_id") > -1:
+            if (
+                column.lower().strip() == "id"
+                or column.lower().strip().find("_id") > -1
+            ):
                 continue
 
-            cardinality = cls._get_column_cardinality_with_caching(dataset, column, column_cache)
+            cardinality = cls._get_column_cardinality_with_caching(
+                dataset, column, column_cache
+            )
             type = cls._get_column_type_with_caching(dataset, column, column_cache)
 
-            if cardinality in ["many", "very many", "unique"] and type in ["int", "float"]:
+            if cardinality in ["many", "very many", "unique"] and type in [
+                "int",
+                "float",
+            ]:
                 return column
 
         return None
@@ -178,21 +214,30 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
             if column in profiled_columns["string"]:
                 continue
 
-            cardinality = cls._get_column_cardinality_with_caching(dataset, column, column_cache)
+            cardinality = cls._get_column_cardinality_with_caching(
+                dataset, column, column_cache
+            )
             type = cls._get_column_type_with_caching(dataset, column, column_cache)
 
-            if cardinality in ["many", "very many", "unique"] and type in ["string", "unknown"]:
+            if cardinality in ["many", "very many", "unique"] and type in [
+                "string",
+                "unknown",
+            ]:
                 return column
 
         return None
 
     @classmethod
-    def _find_next_datetime_column(cls, dataset, columns, profiled_columns, column_cache):
+    def _find_next_datetime_column(
+        cls, dataset, columns, profiled_columns, column_cache
+    ):
         for column in columns:
             if column in profiled_columns["datetime"]:
                 continue
 
-            cardinality = cls._get_column_cardinality_with_caching(dataset, column, column_cache)
+            cardinality = cls._get_column_cardinality_with_caching(
+                dataset, column, column_cache
+            )
             type = cls._get_column_type_with_caching(dataset, column, column_cache)
 
             if cardinality in ["many", "very many", "unique"] and type in ["datetime"]:
@@ -204,12 +249,14 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
     def _create_expectations_for_datetime_column(cls, dataset, column):
         cls._create_non_nullity_expectations(dataset, column)
 
-        min_value = \
-        dataset.expect_column_min_to_be_between(column, min_value=None, max_value=None, result_format="SUMMARY").result[
-            "observed_value"]
+        min_value = dataset.expect_column_min_to_be_between(
+            column, min_value=None, max_value=None, result_format="SUMMARY"
+        ).result["observed_value"]
 
         if min_value is not None:
-            dataset.remove_expectation(expectation_type="expect_column_min_to_be_between", column=column)
+            dataset.remove_expectation(
+                expectation_type="expect_column_min_to_be_between", column=column
+            )
             try:
                 min_value = min_value + datetime.timedelta(days=-365)
             except OverflowError as o_err:
@@ -217,12 +264,13 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
             except TypeError as o_err:
                 min_value = parse(min_value) + datetime.timedelta(days=-365)
 
-
-        max_value = \
-        dataset.expect_column_max_to_be_between(column, min_value=None, max_value=None, result_format="SUMMARY").result[
-            "observed_value"]
+        max_value = dataset.expect_column_max_to_be_between(
+            column, min_value=None, max_value=None, result_format="SUMMARY"
+        ).result["observed_value"]
         if max_value is not None:
-            dataset.remove_expectation(expectation_type="expect_column_max_to_be_between", column=column)
+            dataset.remove_expectation(
+                expectation_type="expect_column_max_to_be_between", column=column
+            )
             try:
                 max_value = max_value + datetime.timedelta(days=365)
             except OverflowError as o_err:
@@ -231,18 +279,23 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
                 max_value = parse(max_value) + datetime.timedelta(days=365)
 
         if min_value is not None or max_value is not None:
-            dataset.expect_column_values_to_be_between(column, min_value, max_value, parse_strings_as_datetimes=True)
-
+            dataset.expect_column_values_to_be_between(
+                column, min_value, max_value, parse_strings_as_datetimes=True
+            )
 
     @classmethod
     def _profile(cls, dataset):
 
         dataset.set_default_expectation_argument("catch_exceptions", False)
 
-        value = dataset.expect_table_row_count_to_be_between(min_value=0, max_value=None).result["observed_value"]
-        dataset.expect_table_row_count_to_be_between(min_value=max(0, value-10), max_value=value+10)
+        value = dataset.expect_table_row_count_to_be_between(
+            min_value=0, max_value=None
+        ).result["observed_value"]
+        dataset.expect_table_row_count_to_be_between(
+            min_value=max(0, value - 10), max_value=value + 10
+        )
 
-        dataset.set_config_value('interactive_evaluation', True)
+        dataset.set_config_value("interactive_evaluation", True)
 
         columns = dataset.get_table_columns()
 
@@ -254,36 +307,39 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
             meta_columns[column] = {"description": ""}
 
         column_cache = {}
-        profiled_columns = {
-            "numeric": [],
-            "low_card": [],
-            "string": [],
-            "datetime": []
-        }
+        profiled_columns = {"numeric": [], "low_card": [], "string": [], "datetime": []}
 
-        column = cls._find_next_low_card_column(dataset, columns, profiled_columns, column_cache)
+        column = cls._find_next_low_card_column(
+            dataset, columns, profiled_columns, column_cache
+        )
         if column:
             cls._create_expectations_for_low_card_column(dataset, column, column_cache)
             profiled_columns["low_card"].append(column)
 
-
-        column = cls._find_next_numeric_column(dataset, columns, profiled_columns, column_cache)
+        column = cls._find_next_numeric_column(
+            dataset, columns, profiled_columns, column_cache
+        )
         if column:
             cls._create_expectations_for_numeric_column(dataset, column)
             profiled_columns["numeric"].append(column)
 
-
-        column = cls._find_next_string_column(dataset, columns, profiled_columns, column_cache)
+        column = cls._find_next_string_column(
+            dataset, columns, profiled_columns, column_cache
+        )
         if column:
             cls._create_expectations_for_string_column(dataset, column)
             profiled_columns["string"].append(column)
 
-        column = cls._find_next_datetime_column(dataset, columns, profiled_columns, column_cache)
+        column = cls._find_next_datetime_column(
+            dataset, columns, profiled_columns, column_cache
+        )
         if column:
             cls._create_expectations_for_datetime_column(dataset, column)
             profiled_columns["datetime"].append(column)
 
-        expectation_suite = dataset.get_expectation_suite(suppress_warnings=True, discard_failed_expectations=True)
+        expectation_suite = dataset.get_expectation_suite(
+            suppress_warnings=True, discard_failed_expectations=True
+        )
         if not expectation_suite.meta:
             expectation_suite.meta = {"columns": meta_columns, "notes": {""}}
         else:
@@ -298,7 +354,7 @@ class SampleExpectationsDatasetProfiler(BasicDatasetProfilerBase):
 - This is **not a production suite**. It is meant to show examples of expectations.
 - Because this suite was auto-generated using a very basic profiler that does not know your data like you do, many of the expectations may not be meaningful.
 """
-            ]
+            ],
         }
 
         return expectation_suite

@@ -11,7 +11,7 @@ from tests.cli.test_cli import yaml
 from tests.cli.utils import (
     assert_no_logging_messages_or_tracebacks,
     assert_no_tracebacks,
-    assert_dict_key_and_val_in_stdout
+    assert_dict_key_and_val_in_stdout,
 )
 
 
@@ -53,7 +53,9 @@ def test_cli_datasource_list(empty_data_context, empty_sqlite_db, caplog):
    [36mdata_asset_type:[0m[0m
      [36mclass_name:[0m SqlAlchemyDataset[0m
      [36mmodule_name:[0m None[0m
-""".format(url).strip()
+""".format(
+        url
+    ).strip()
     stdout = result.output.strip()
 
     assert stdout == expected_output
@@ -74,7 +76,9 @@ def _add_datasource_and_credentials_to_context(context, datasource_name, sqlite_
         class_name="SqlAlchemyDatasource",
         data_asset_type={"class_name": "SqlAlchemyDataset"},
         credentials="${" + datasource_name + "}",
-        batch_kwargs_generators={"default": {"class_name": "TableBatchKwargsGenerator"}},
+        batch_kwargs_generators={
+            "default": {"class_name": "TableBatchKwargsGenerator"}
+        },
     )
 
     expected_datasources = original_datasources
@@ -83,9 +87,11 @@ def _add_datasource_and_credentials_to_context(context, datasource_name, sqlite_
             "name": datasource_name,
             "class_name": "SqlAlchemyDatasource",
             "module_name": "great_expectations.datasource",
-            'credentials': OrderedDict([('url', url)]),
-            'data_asset_type': {'class_name': 'SqlAlchemyDataset', 'module_name': None},
-            'batch_kwargs_generators': {'default': {'class_name': 'TableBatchKwargsGenerator'}},
+            "credentials": OrderedDict([("url", url)]),
+            "data_asset_type": {"class_name": "SqlAlchemyDataset", "module_name": None},
+            "batch_kwargs_generators": {
+                "default": {"class_name": "TableBatchKwargsGenerator"}
+            },
         }
     )
 
@@ -127,16 +133,22 @@ def _add_datasource__with_two_generators_and_credentials_to_context(
             "name": datasource_name,
             "class_name": "SqlAlchemyDatasource",
             "module_name": "great_expectations.datasource",
-            'credentials': {
-                'url': url},
-            'data_asset_type': {'class_name': 'SqlAlchemyDataset', 'module_name': None},
-            'batch_kwargs_generators': {'default': {'class_name': 'TableBatchKwargsGenerator'},
-                           'second_generator': {'assets': {'asset_one': [{'partition_id': 1,
-                                                                          'query': 'select '
-                                                                                   '* '
-                                                                                   'from '
-                                                                                   'main.titanic'}]},
-                                                'class_name': 'ManualBatchKwargsGenerator'}},
+            "credentials": {"url": url},
+            "data_asset_type": {"class_name": "SqlAlchemyDataset", "module_name": None},
+            "batch_kwargs_generators": {
+                "default": {"class_name": "TableBatchKwargsGenerator"},
+                "second_generator": {
+                    "assets": {
+                        "asset_one": [
+                            {
+                                "partition_id": 1,
+                                "query": "select " "* " "from " "main.titanic",
+                            }
+                        ]
+                    },
+                    "class_name": "ManualBatchKwargsGenerator",
+                },
+            },
         }
     )
 
@@ -261,14 +273,7 @@ def test_cli_datasource_profile_with_datasource_arg(
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(
         cli,
-        [
-            "datasource",
-            "profile",
-            datasource_name,
-            "-d",
-            project_root_dir,
-            "--no-view",
-        ],
+        ["datasource", "profile", datasource_name, "-d", project_root_dir, "--no-view"],
         input="Y\n",
         catch_exceptions=False,
     )

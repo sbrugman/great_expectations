@@ -13,6 +13,7 @@ class BatchMarkers(BatchKwargs):
     """A BatchMarkers is a special type of BatchKwargs (so that it has a batch_fingerprint) but it generally does
     NOT require specific keys and instead captures information about the OUTPUT of a datasource's fetch
     process, such as the timestamp at which a query was executed."""
+
     def __init__(self, *args, **kwargs):
         super(BatchMarkers, self).__init__(*args, **kwargs)
         if "ge_load_time" not in self:
@@ -44,6 +45,7 @@ class SqlAlchemyDatasourceBatchKwargs(BatchKwargs):
     """This is an abstract class and should not be instantiated. It's relevant for testing whether
     a subclass is allowed
     """
+
     @property
     def limit(self):
         return self.get("limit")
@@ -82,11 +84,14 @@ class S3BatchKwargs(PandasDatasourceBatchKwargs, SparkDFDatasourceBatchKwargs):
     def reader_method(self):
         return self.get("reader_method")
 
+
 class InMemoryBatchKwargs(PandasDatasourceBatchKwargs, SparkDFDatasourceBatchKwargs):
     def __init__(self, *args, **kwargs):
         super(InMemoryBatchKwargs, self).__init__(*args, **kwargs)
         if "dataset" not in self:
-            raise InvalidBatchKwargsError("InMemoryBatchKwargs requires a 'dataset' element")
+            raise InvalidBatchKwargsError(
+                "InMemoryBatchKwargs requires a 'dataset' element"
+            )
 
     @property
     def dataset(self):
@@ -97,8 +102,11 @@ class PandasDatasourceInMemoryBatchKwargs(InMemoryBatchKwargs):
     def __init__(self, *args, **kwargs):
         super(PandasDatasourceInMemoryBatchKwargs, self).__init__(*args, **kwargs)
         import pandas as pd
+
         if not isinstance(self["dataset"], pd.DataFrame):
-            raise InvalidBatchKwargsError("PandasDatasourceInMemoryBatchKwargs 'dataset' must be a pandas DataFrame")
+            raise InvalidBatchKwargsError(
+                "PandasDatasourceInMemoryBatchKwargs 'dataset' must be a pandas DataFrame"
+            )
 
 
 class SparkDFDatasourceInMemoryBatchKwargs(InMemoryBatchKwargs):
@@ -111,14 +119,18 @@ class SparkDFDatasourceInMemoryBatchKwargs(InMemoryBatchKwargs):
                 "SparkDFDatasourceInMemoryBatchKwargs requires a valid pyspark installation, but pyspark import failed."
             )
         if not isinstance(self["dataset"], pyspark.sql.DataFrame):
-            raise InvalidBatchKwargsError("SparkDFDatasourceInMemoryBatchKwargs 'dataset' must be a spark DataFrame")
+            raise InvalidBatchKwargsError(
+                "SparkDFDatasourceInMemoryBatchKwargs 'dataset' must be a spark DataFrame"
+            )
 
 
 class SqlAlchemyDatasourceTableBatchKwargs(SqlAlchemyDatasourceBatchKwargs):
     def __init__(self, *args, **kwargs):
         super(SqlAlchemyDatasourceTableBatchKwargs, self).__init__(*args, **kwargs)
         if "table" not in self:
-            raise InvalidBatchKwargsError("SqlAlchemyDatasourceTableBatchKwargs requires a 'table' element")
+            raise InvalidBatchKwargsError(
+                "SqlAlchemyDatasourceTableBatchKwargs requires a 'table' element"
+            )
 
     @property
     def table(self):
@@ -129,7 +141,9 @@ class SqlAlchemyDatasourceQueryBatchKwargs(SqlAlchemyDatasourceBatchKwargs):
     def __init__(self, *args, **kwargs):
         super(SqlAlchemyDatasourceQueryBatchKwargs, self).__init__(*args, **kwargs)
         if "query" not in self:
-            raise InvalidBatchKwargsError("SqlAlchemyDatasourceQueryBatchKwargs requires a 'query' element")
+            raise InvalidBatchKwargsError(
+                "SqlAlchemyDatasourceQueryBatchKwargs requires a 'query' element"
+            )
 
     @property
     def query(self):
@@ -144,7 +158,9 @@ class SparkDFDatasourceQueryBatchKwargs(SparkDFDatasourceBatchKwargs):
     def __init__(self, *args, **kwargs):
         super(SparkDFDatasourceQueryBatchKwargs, self).__init__(*args, **kwargs)
         if "query" not in self:
-            raise InvalidBatchKwargsError("SparkDFDatasourceQueryBatchKwargs requires a 'query' element")
+            raise InvalidBatchKwargsError(
+                "SparkDFDatasourceQueryBatchKwargs requires a 'query' element"
+            )
 
     @property
     def query(self):

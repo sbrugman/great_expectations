@@ -19,10 +19,10 @@ def store():
 
 @store.command(name="list")
 @click.option(
-    '--directory',
-    '-d',
+    "--directory",
+    "-d",
     default=None,
-    help="The project's great_expectations directory."
+    help="The project's great_expectations directory.",
 )
 def store_list(directory):
     """List known Stores."""
@@ -38,9 +38,7 @@ def store_list(directory):
         if len(stores) == 0:
             cli_message("No Stores found")
             send_usage_message(
-                data_context=context,
-                event="cli.store.list",
-                success=True
+                data_context=context, event="cli.store.list", success=True
             )
             return
 
@@ -56,16 +54,7 @@ def store_list(directory):
             cli_message("")
             cli_message_dict(store)
 
-        send_usage_message(
-            data_context=context,
-            event="cli.store.list",
-            success=True
-        )
+        send_usage_message(data_context=context, event="cli.store.list", success=True)
     except Exception as e:
-        send_usage_message(
-            data_context=context,
-            event="cli.store.list",
-            success=False
-        )
+        send_usage_message(data_context=context, event="cli.store.list", success=False)
         raise e
-

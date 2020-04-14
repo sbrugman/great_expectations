@@ -47,7 +47,7 @@ def test_suite_new_on_context_with_no_datasources(
     root_dir = project_root_dir
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(
-        cli, ["suite", "new", "-d", root_dir], catch_exceptions=False,
+        cli, ["suite", "new", "-d", root_dir], catch_exceptions=False
     )
     stdout = result.stdout
 
@@ -358,7 +358,8 @@ def test_suite_new_one_datasource_without_generator_without_suite_name_argument(
 
     assert len(obs_urls) == 1
     assert (
-        "great_expectations/uncommitted/data_docs/local_site/index.html" in obs_urls[0]["site_url"]
+        "great_expectations/uncommitted/data_docs/local_site/index.html"
+        in obs_urls[0]["site_url"]
     )
 
     expected_index_path = os.path.join(
@@ -433,7 +434,8 @@ def test_suite_new_multiple_datasources_with_generator_without_suite_name_argume
 
     assert len(obs_urls) == 1
     assert (
-        "great_expectations/uncommitted/data_docs/local_site/index.html" in obs_urls[0]["site_url"]
+        "great_expectations/uncommitted/data_docs/local_site/index.html"
+        in obs_urls[0]["site_url"]
     )
 
     expected_index_path = os.path.join(
@@ -495,7 +497,8 @@ def test_suite_new_multiple_datasources_with_generator_with_suite_name_argument(
 
     assert len(obs_urls) == 1
     assert (
-        "great_expectations/uncommitted/data_docs/local_site/index.html" in obs_urls[0]["site_url"]
+        "great_expectations/uncommitted/data_docs/local_site/index.html"
+        in obs_urls[0]["site_url"]
     )
 
     expected_index_path = os.path.join(
@@ -704,7 +707,7 @@ def test_suite_edit_multiple_datasources_with_generator_with_no_additional_args_
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(
         cli,
-        ["suite", "edit", "foo_suite", "-d", root_dir,],
+        ["suite", "edit", "foo_suite", "-d", root_dir],
         input="2\n1\n1\n\n",
         catch_exceptions=False,
     )
@@ -883,7 +886,7 @@ def test_suite_edit_multiple_datasources_with_generator_with_batch_kwargs_arg(
 @mock.patch("subprocess.call", return_value=True, side_effect=None)
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_suite_edit_on_exsiting_suite_one_datasources_with_batch_kwargs_without_datasource_raises_helpful_error(
-    mock_webbrowser, mock_subprocess, caplog, titanic_data_context,
+    mock_webbrowser, mock_subprocess, caplog, titanic_data_context
 ):
     """
     Given:
@@ -931,7 +934,7 @@ def test_suite_edit_on_exsiting_suite_one_datasources_with_batch_kwargs_without_
 @mock.patch("subprocess.call", return_value=True, side_effect=None)
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_suite_edit_on_exsiting_suite_one_datasources_with_datasource_arg_and_batch_kwargs(
-    mock_webbrowser, mock_subprocess, caplog, titanic_data_context,
+    mock_webbrowser, mock_subprocess, caplog, titanic_data_context
 ):
     """
     Given:
@@ -1064,7 +1067,7 @@ def test_suite_list_with_zero_suites(caplog, empty_data_context):
     runner = CliRunner(mix_stderr=False)
 
     result = runner.invoke(
-        cli, "suite list -d {}".format(project_dir), catch_exceptions=False,
+        cli, "suite list -d {}".format(project_dir), catch_exceptions=False
     )
     assert result.exit_code == 0
     assert "No Expectation Suites found" in result.output
@@ -1079,7 +1082,7 @@ def test_suite_list_with_one_suite(caplog, empty_data_context):
     runner = CliRunner(mix_stderr=False)
 
     result = runner.invoke(
-        cli, "suite list -d {}".format(project_dir), catch_exceptions=False,
+        cli, "suite list -d {}".format(project_dir), catch_exceptions=False
     )
     assert result.exit_code == 0
     assert "1 Expectation Suite found" in result.output
@@ -1097,7 +1100,7 @@ def test_suite_list_with_multiple_suites(caplog, empty_data_context):
     runner = CliRunner(mix_stderr=False)
 
     result = runner.invoke(
-        cli, "suite list -d {}".format(project_dir), catch_exceptions=False,
+        cli, "suite list -d {}".format(project_dir), catch_exceptions=False
     )
     output = result.output
     assert result.exit_code == 0

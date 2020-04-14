@@ -5,10 +5,10 @@ import click
 
 from great_expectations import DataContext
 from great_expectations import exceptions as ge_exceptions
-from great_expectations.cli.datasource import \
-    add_datasource as add_datasource_impl
-from great_expectations.cli.datasource import \
-    create_expectation_suite as create_expectation_suite_impl
+from great_expectations.cli.datasource import add_datasource as add_datasource_impl
+from great_expectations.cli.datasource import (
+    create_expectation_suite as create_expectation_suite_impl,
+)
 from great_expectations.cli.docs import build_docs
 from great_expectations.cli.init_messages import (
     BUILD_DOCS_PROMPT,
@@ -54,7 +54,7 @@ except ImportError:
 @click.option(
     "--usage-stats/--no-usage-stats",
     help="By default, usage statistics are enabled unless you specify the --no-usage-stats flag.",
-    default=True
+    default=True,
 )
 def init(target_directory, view, usage_stats):
     """
@@ -80,7 +80,9 @@ def init(target_directory, view, usage_stats):
             sys.exit(1)
 
         try:
-            context = DataContext.create(target_directory, usage_statistics_enabled=usage_stats)
+            context = DataContext.create(
+                target_directory, usage_statistics_enabled=usage_stats
+            )
             cli_message(ONBOARDING_COMPLETE)
             # TODO if this is correct, ensure this is covered by a test
             # cli_message(SETUP_SUCCESS)
@@ -96,7 +98,9 @@ def init(target_directory, view, usage_stats):
             exit(0)
 
         try:
-            context = DataContext.create(target_directory, usage_statistics_enabled=usage_stats)
+            context = DataContext.create(
+                target_directory, usage_statistics_enabled=usage_stats
+            )
         except DataContextError as e:
             # TODO ensure this is covered by a test
             cli_message("<red>{}</red>".format(e))
@@ -111,7 +115,9 @@ def init(target_directory, view, usage_stats):
         else:
             datasources = context.list_datasources()
             if len(datasources) == 0:
-                datasource_name, data_source_type = add_datasource_impl(context, choose_one_data_asset=True)
+                datasource_name, data_source_type = add_datasource_impl(
+                    context, choose_one_data_asset=True
+                )
                 if not datasource_name:  # no datasource was created
                     sys.exit(1)
 
@@ -128,7 +134,9 @@ def init(target_directory, view, usage_stats):
                 )
                 if success:
                     cli_message(
-                        "A new Expectation suite '{}' was added to your project".format(suite_name)
+                        "A new Expectation suite '{}' was added to your project".format(
+                            suite_name
+                        )
                     )
 
                 cli_message(SETUP_SUCCESS)
@@ -137,7 +145,7 @@ def init(target_directory, view, usage_stats):
         DataContextError,
         ge_exceptions.ProfilerError,
         IOError,
-        SQLAlchemyError
+        SQLAlchemyError,
     ) as e:
         cli_message("<red>{}</red>".format(e))
         sys.exit(1)

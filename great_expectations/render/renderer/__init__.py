@@ -4,14 +4,12 @@ from .column_section_renderer import (
     ExpectationSuiteColumnSectionRenderer,
 )
 
-from .other_section_renderer import (
-    ProfilingResultsOverviewSectionRenderer
-)
+from .other_section_renderer import ProfilingResultsOverviewSectionRenderer
 
 from .page_renderer import (
     ProfilingResultsPageRenderer,
     ExpectationSuitePageRenderer,
-    ValidationResultsPageRenderer
+    ValidationResultsPageRenderer,
 )
 
 from .slack_renderer import SlackRenderer

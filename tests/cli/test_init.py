@@ -18,7 +18,7 @@ from tests.cli.utils import assert_no_logging_messages_or_tracebacks
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_cli_init_on_existing_project_with_no_uncommitted_dirs_answering_yes_to_fixing_them(
-    mock_webbrowser, caplog, tmp_path_factory,
+    mock_webbrowser, caplog, tmp_path_factory
 ):
     """
     This test walks through the onboarding experience.
@@ -88,7 +88,7 @@ def test_cli_init_on_existing_project_with_no_uncommitted_dirs_answering_yes_to_
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_cli_init_on_complete_existing_project_all_uncommitted_dirs_exist(
-    mock_webbrowser, caplog, tmp_path_factory,
+    mock_webbrowser, caplog, tmp_path_factory
 ):
     """
     This test walks through the onboarding experience.
@@ -140,7 +140,7 @@ def test_cli_init_on_complete_existing_project_all_uncommitted_dirs_exist(
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_cli_init_connection_string_non_working_db_connection_instructs_user_and_leaves_entries_in_config_files_for_debugging(
-    mock_webbrowser, caplog, tmp_path_factory,
+    mock_webbrowser, caplog, tmp_path_factory
 ):
     root_dir = tmp_path_factory.mktemp("bad_con_string_test")
     root_dir = str(root_dir)
@@ -179,10 +179,7 @@ def test_cli_init_connection_string_non_working_db_connection_instructs_user_and
     config = yaml.load(open(config_path, "r"))
     assert config["datasources"] == {
         "my_db": {
-            "data_asset_type": {
-                "module_name": None,
-                "class_name": "SqlAlchemyDataset",
-            },
+            "data_asset_type": {"module_name": None, "class_name": "SqlAlchemyDataset"},
             "credentials": "${my_db}",
             "class_name": "SqlAlchemyDatasource",
             "module_name": "great_expectations.datasource",

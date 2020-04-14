@@ -19,7 +19,6 @@ def test_DataContext_raises_error_on_unparsable_yaml_file():
         DataContext(local_dir)
 
 
-
 # NOTE: 20191001 - JPC: The behavior of typed DataContextConfig is removed because it did not support
 # round trip yaml comments. Re-add appropriate tests upon development of an appropriate replacement
 # for DataContextConfig
@@ -46,7 +45,7 @@ def test_DataContext_raises_error_on_invalid_top_level_type():
     with pytest.raises(ge_exceptions.InvalidDataContextConfigError) as exc:
         DataContext(local_dir)
 
-    assert 'data_docs_sites' in exc.value.messages
+    assert "data_docs_sites" in exc.value.messages
 
 
 def test_DataContext_raises_error_on_invalid_config_version():
@@ -56,7 +55,7 @@ def test_DataContext_raises_error_on_invalid_config_version():
     with pytest.raises(ge_exceptions.InvalidDataContextConfigError) as exc:
         DataContext(local_dir)
 
-    assert 'config_version' in exc.value.messages
+    assert "config_version" in exc.value.messages
 
 
 def test_DataContext_raises_error_on_old_config_version():
@@ -66,12 +65,10 @@ def test_DataContext_raises_error_on_old_config_version():
     with pytest.raises(ge_exceptions.InvalidDataContextConfigError) as exc:
         DataContext(local_dir)
 
-    assert 'Error while processing DataContextConfig' in exc.value.message
+    assert "Error while processing DataContextConfig" in exc.value.message
 
 
 def test_DataContext_raises_error_on_missing_config_version_aka_version_zero():
-    local_dir = file_relative_path(
-        __file__, os.path.join(BASE_DIR, "version_zero")
-    )
+    local_dir = file_relative_path(__file__, os.path.join(BASE_DIR, "version_zero"))
     with pytest.raises(ge_exceptions.InvalidDataContextConfigError):
         DataContext(local_dir)

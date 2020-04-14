@@ -151,7 +151,7 @@ def test_cli_init_on_new_project(mock_webbrowser, caplog, tmp_path_factory):
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_init_on_existing_project_with_no_datasources_should_continue_init_flow_and_add_one(
-    mock_webbrowser, capsys, caplog, initialized_project,
+    mock_webbrowser, capsys, caplog, initialized_project
 ):
     project_dir = initialized_project
     ge_dir = os.path.join(project_dir, DataContext.GE_DIR)
@@ -209,8 +209,10 @@ def test_init_on_existing_project_with_no_datasources_should_continue_init_flow_
         {
             "name": "files_datasource",
             "class_name": "PandasDatasource",
-            'data_asset_type': {'class_name': 'PandasDataset',
-                                'module_name': 'great_expectations.dataset'},
+            "data_asset_type": {
+                "class_name": "PandasDataset",
+                "module_name": "great_expectations.dataset",
+            },
             "module_name": "great_expectations.datasource",
         }
     ]
@@ -294,7 +296,7 @@ def test_init_on_existing_project_with_multiple_datasources_exist_do_nothing(
         UserWarning, match="Warning. An existing `great_expectations.yml` was found"
     ):
         result = runner.invoke(
-            cli, ["init", "-d", project_dir], input="n\n", catch_exceptions=False,
+            cli, ["init", "-d", project_dir], input="n\n", catch_exceptions=False
         )
     stdout = result.stdout
 
@@ -312,7 +314,7 @@ def test_init_on_existing_project_with_multiple_datasources_exist_do_nothing(
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_build_docs_answer_yes(
-    mock_webbrowser, caplog, initialized_project,
+    mock_webbrowser, caplog, initialized_project
 ):
     project_dir = initialized_project
 
@@ -321,7 +323,7 @@ def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_b
         UserWarning, match="Warning. An existing `great_expectations.yml` was found"
     ):
         result = runner.invoke(
-            cli, ["init", "-d", project_dir], input="n\n", catch_exceptions=False,
+            cli, ["init", "-d", project_dir], input="n\n", catch_exceptions=False
         )
     stdout = result.stdout
 
@@ -340,7 +342,7 @@ def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_b
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_build_docs_answer_no(
-    mock_webbrowser, caplog, initialized_project,
+    mock_webbrowser, caplog, initialized_project
 ):
     project_dir = initialized_project
 
@@ -349,7 +351,7 @@ def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_b
         UserWarning, match="Warning. An existing `great_expectations.yml` was found"
     ):
         result = runner.invoke(
-            cli, ["init", "-d", project_dir], input="Y\n", catch_exceptions=False,
+            cli, ["init", "-d", project_dir], input="Y\n", catch_exceptions=False
         )
     stdout = result.stdout
 
@@ -374,7 +376,7 @@ def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_b
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_init_on_existing_project_with_datasource_with_no_suite_create_one(
-    mock_browser, caplog, initialized_project,
+    mock_browser, caplog, initialized_project
 ):
     project_dir = initialized_project
     ge_dir = os.path.join(project_dir, DataContext.GE_DIR)

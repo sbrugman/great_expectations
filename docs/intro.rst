@@ -120,5 +120,3 @@ If you have questions, comments, or just want to have a good old-fashioned chat 
 If you'd like to contribute to Great Expectations, please head to the :ref:`community` section.
 
 If you'd like hands-on assistance setting up Great Expectations, establishing a healthy practice of data testing, or adding functionality to Great Expectations, please see options for consulting help `here <https://greatexpectations.io/consulting/>`__.
-
-

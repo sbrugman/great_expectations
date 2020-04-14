@@ -126,6 +126,3 @@ Profilers
 
 Core code changes
 ----------------------------
-
-
-

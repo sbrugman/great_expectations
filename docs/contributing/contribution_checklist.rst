@@ -11,7 +11,7 @@ Following these instructions helps us make sure the code review and merge proces
 Before submitting a pull request
 ------------
 
-Once your code is ready, please go through the following checklist before submitting a pull request. 
+Once your code is ready, please go through the following checklist before submitting a pull request.
 
 
 **1. Have you signed the CLA?**
@@ -72,7 +72,8 @@ When you’re done with your work...
 
 **3. Verify continuous integration checks**
 
-    * Wait for the other continuous integration (CI) checks to go green and watch out for a comment from the automated linter that checks for syntax and formatting issues.
+    * Wait for the other continuous integration (CI) checks to go green; the automated linter that checks for syntax
+will be included in the checks.
     * Fix any issues that are flagged.
 
 **4. Wait for a core team member to approve and merge your PR**

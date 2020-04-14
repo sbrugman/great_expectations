@@ -100,17 +100,17 @@ def suite_with_multiple_citations():
             "citations": [
                 {
                     "citation_date": "2001-01-01T00:00:01.000001",
-                    "batch_kwargs": {"path": "3.csv", "datasource": "3",},
+                    "batch_kwargs": {"path": "3.csv", "datasource": "3"},
                 },
                 {
                     "citation_date": "2000-01-01T00:00:01.000001",
-                    "batch_kwargs": {"path": "2.csv", "datasource": "2",},
+                    "batch_kwargs": {"path": "2.csv", "datasource": "2"},
                 },
                 # This citation is the most recent and has no batch_kwargs
-                {"citation_date": "2020-01-01T00:00:01.000001",},
+                {"citation_date": "2020-01-01T00:00:01.000001"},
                 {
                     "citation_date": "1999-01-01T00:00:01.000001",
-                    "batch_kwargs": {"path": "1.csv", "datasource": "1",},
+                    "batch_kwargs": {"path": "1.csv", "datasource": "1"},
                 },
             ],
         },
@@ -486,9 +486,7 @@ context.open_data_docs(validation_result_identifier)""",
     assert obs == expected
 
 
-def test_render_with_no_column_cells(
-    critical_suite_with_citations,
-):
+def test_render_with_no_column_cells(critical_suite_with_citations,):
     critical_suite_with_citations.expectations = []
     obs = NotebookRenderer().render(critical_suite_with_citations)
     assert isinstance(obs, dict)
@@ -1538,10 +1536,22 @@ def test_notebook_execution_with_pandas_backend(titanic_data_context):
     assert len(suite.expectations) == 3
     assert context.list_expectation_suite_names() == [suite_name]
     assert context.list_datasources() == [
-        {'module_name': 'great_expectations.datasource', 'class_name': 'PandasDatasource',
-         'data_asset_type': {'module_name': 'great_expectations.dataset', 'class_name': 'PandasDataset'},
-         'batch_kwargs_generators': {'mygenerator': {'class_name': 'SubdirReaderBatchKwargsGenerator', 'base_directory': '../data'}},
-         'name': 'mydatasource'}]
+        {
+            "module_name": "great_expectations.datasource",
+            "class_name": "PandasDatasource",
+            "data_asset_type": {
+                "module_name": "great_expectations.dataset",
+                "class_name": "PandasDataset",
+            },
+            "batch_kwargs_generators": {
+                "mygenerator": {
+                    "class_name": "SubdirReaderBatchKwargsGenerator",
+                    "base_directory": "../data",
+                }
+            },
+            "name": "mydatasource",
+        }
+    ]
     assert context.get_validation_result("warning") == {}
 
     # Create notebook

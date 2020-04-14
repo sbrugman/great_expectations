@@ -22,5 +22,3 @@ Changelog
    :maxdepth: 2
 
    /changelog/changelog
-
-

@@ -35,7 +35,7 @@ def test_tap_new_with_filename_not_ending_in_py_raises_helpful_error(
     root_dir = context.root_directory
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(
-        cli, f"tap new sweet_suite tap -d {root_dir}", catch_exceptions=False,
+        cli, f"tap new sweet_suite tap -d {root_dir}", catch_exceptions=False
     )
     stdout = result.stdout
 
@@ -57,7 +57,7 @@ def test_tap_new_on_context_with_no_datasources(caplog, empty_data_context):
     root_dir = empty_data_context.root_directory
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(
-        cli, f"tap new not_a_suite tap.py -d {root_dir}", catch_exceptions=False,
+        cli, f"tap new not_a_suite tap.py -d {root_dir}", catch_exceptions=False
     )
     stdout = result.stdout
 
@@ -84,7 +84,7 @@ def test_tap_new_with_non_existant_suite(caplog, empty_data_context):
     root_dir = empty_data_context.root_directory
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(
-        cli, f"tap new not_a_suite tap.py -d {root_dir}", catch_exceptions=False,
+        cli, f"tap new not_a_suite tap.py -d {root_dir}", catch_exceptions=False
     )
     stdout = result.stdout
 
@@ -187,6 +187,7 @@ def test_tap_new_on_context_builds_runnable_tap_file(
     status, output = subprocess.getstatusoutput(cmdstring)
     assert status == 0
     assert output == "Validation Succeeded!"
+
 
 def test_tap_new_on_context_builds_runnable_tap_file_that_fails_validation(
     caplog, empty_data_context, filesystem_csv

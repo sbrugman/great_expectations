@@ -84,10 +84,11 @@ def test_cli_init_on_new_project(
             "class_name": "SqlAlchemyDatasource",
             "name": "titanic",
             "module_name": "great_expectations.datasource",
-            'credentials': {
-                'url': str(engine.url)},
-            'data_asset_type': {'class_name': 'SqlAlchemyDataset',
-                                'module_name': 'great_expectations.dataset'},
+            "credentials": {"url": str(engine.url)},
+            "data_asset_type": {
+                "class_name": "SqlAlchemyDataset",
+                "module_name": "great_expectations.dataset",
+            },
         }
     ]
 
@@ -238,10 +239,11 @@ def test_cli_init_on_new_project_extra_whitespace_in_url(
             "class_name": "SqlAlchemyDatasource",
             "name": "titanic",
             "module_name": "great_expectations.datasource",
-            'credentials': {
-                'url': str(engine.url)},
-            'data_asset_type': {'class_name': 'SqlAlchemyDataset',
-                                'module_name': 'great_expectations.dataset'},
+            "credentials": {"url": str(engine.url)},
+            "data_asset_type": {
+                "class_name": "SqlAlchemyDataset",
+                "module_name": "great_expectations.dataset",
+            },
         }
     ]
 
@@ -273,7 +275,7 @@ def test_cli_init_on_new_project_extra_whitespace_in_url(
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_init_on_existing_project_with_no_datasources_should_continue_init_flow_and_add_one(
-    mock_webbrowser, caplog, initialized_sqlite_project, titanic_sqlite_db_file,
+    mock_webbrowser, caplog, initialized_sqlite_project, titanic_sqlite_db_file
 ):
     project_dir = initialized_sqlite_project
     ge_dir = os.path.join(project_dir, DataContext.GE_DIR)
@@ -285,7 +287,9 @@ def test_init_on_existing_project_with_no_datasources_should_continue_init_flow_
 
     runner = CliRunner(mix_stderr=False)
     url = "sqlite:///{}".format(titanic_sqlite_db_file)
-    with pytest.warns(UserWarning, match="Warning. An existing `great_expectations.yml` was found"):
+    with pytest.warns(
+        UserWarning, match="Warning. An existing `great_expectations.yml` was found"
+    ):
         result = runner.invoke(
             cli,
             ["init", "-d", project_dir],
@@ -327,10 +331,11 @@ def test_init_on_existing_project_with_no_datasources_should_continue_init_flow_
             "class_name": "SqlAlchemyDatasource",
             "name": "sqlite",
             "module_name": "great_expectations.datasource",
-            'credentials': {
-                'url': url},
-            'data_asset_type': {'class_name': 'SqlAlchemyDataset',
-                                'module_name': 'great_expectations.dataset'},
+            "credentials": {"url": url},
+            "data_asset_type": {
+                "class_name": "SqlAlchemyDataset",
+                "module_name": "great_expectations.dataset",
+            },
         }
     ]
     assert context.list_expectation_suites()[0].expectation_suite_name == "my_suite"
@@ -399,10 +404,11 @@ def initialized_sqlite_project(
             "class_name": "SqlAlchemyDatasource",
             "name": "titanic",
             "module_name": "great_expectations.datasource",
-            'credentials': {
-                'url': str(engine.url)},
-            'data_asset_type': {'class_name': 'SqlAlchemyDataset',
-                                'module_name': 'great_expectations.dataset'},
+            "credentials": {"url": str(engine.url)},
+            "data_asset_type": {
+                "class_name": "SqlAlchemyDataset",
+                "module_name": "great_expectations.dataset",
+            },
         }
     ]
     return project_dir
@@ -431,7 +437,7 @@ def test_init_on_existing_project_with_multiple_datasources_exist_do_nothing(
         UserWarning, match="Warning. An existing `great_expectations.yml` was found"
     ):
         result = runner.invoke(
-            cli, ["init", "-d", project_dir], input="n\n", catch_exceptions=False,
+            cli, ["init", "-d", project_dir], input="n\n", catch_exceptions=False
         )
     stdout = result.stdout
 
@@ -450,7 +456,7 @@ def test_init_on_existing_project_with_multiple_datasources_exist_do_nothing(
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_build_docs_answer_no(
-    mock_webbrowser, caplog, initialized_sqlite_project,
+    mock_webbrowser, caplog, initialized_sqlite_project
 ):
     project_dir = initialized_sqlite_project
 
@@ -459,7 +465,7 @@ def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_b
         UserWarning, match="Warning. An existing `great_expectations.yml` was found"
     ):
         result = runner.invoke(
-            cli, ["init", "-d", project_dir], input="n\n", catch_exceptions=False,
+            cli, ["init", "-d", project_dir], input="n\n", catch_exceptions=False
         )
     stdout = result.stdout
 
@@ -478,7 +484,7 @@ def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_b
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_build_docs_answer_yes(
-    mock_webbrowser, caplog, initialized_sqlite_project,
+    mock_webbrowser, caplog, initialized_sqlite_project
 ):
     project_dir = initialized_sqlite_project
 
@@ -487,7 +493,7 @@ def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_b
         UserWarning, match="Warning. An existing `great_expectations.yml` was found"
     ):
         result = runner.invoke(
-            cli, ["init", "-d", project_dir], input="Y\n", catch_exceptions=False,
+            cli, ["init", "-d", project_dir], input="Y\n", catch_exceptions=False
         )
     stdout = result.stdout
 
@@ -512,7 +518,7 @@ def test_init_on_existing_project_with_datasource_with_existing_suite_offer_to_b
 
 @mock.patch("webbrowser.open", return_value=True, side_effect=None)
 def test_init_on_existing_project_with_datasource_with_no_suite_create_one(
-    mock_webbrowser, caplog, initialized_sqlite_project,
+    mock_webbrowser, caplog, initialized_sqlite_project
 ):
     project_dir = initialized_sqlite_project
     ge_dir = os.path.join(project_dir, DataContext.GE_DIR)

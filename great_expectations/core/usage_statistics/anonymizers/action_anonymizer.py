@@ -6,7 +6,7 @@ from great_expectations.validation_operators import (
     StoreValidationResultAction,
     StoreEvaluationParametersAction,
     SlackNotificationAction,
-    UpdateDataDocsAction
+    UpdateDataDocsAction,
 )
 
 
@@ -22,7 +22,7 @@ class ActionAnonymizer(Anonymizer):
             StoreEvaluationParametersAction,
             SlackNotificationAction,
             UpdateDataDocsAction,
-            ValidationAction
+            ValidationAction,
         ]
 
     def anonymize_action_info(self, action_name, action_obj):
@@ -32,7 +32,7 @@ class ActionAnonymizer(Anonymizer):
         self.anonymize_object_info(
             object_=action_obj,
             anonymized_info_dict=anonymized_info_dict,
-            ge_classes=self._ge_classes
+            ge_classes=self._ge_classes,
         )
 
         return anonymized_info_dict
