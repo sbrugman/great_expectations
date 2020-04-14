@@ -121,7 +121,6 @@ empty_payload_schema = {
     "$schema": "http://json-schema.org/schema#",
     "type": "object",
     "properties": {},
-    "required": [],
     "additionalProperties": False,
 }
 
@@ -165,7 +164,6 @@ anonymized_expectation_suite_schema = {
                 "anonymized_expectation_type_counts": {"type": "object"},
             },
             "additionalProperties": False,
-            "required": [],
         }
     ],
 }
