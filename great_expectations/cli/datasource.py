@@ -974,8 +974,9 @@ def create_expectation_suite(
     msg_some_data_assets_not_found = """Some of the data assets you specified were not found: {0:s}
     """
     msg_prompt_what_will_profiler_do = """
-Great Expectations will choose a couple of columns and generate expectations about them
-to demonstrate some examples of assertions you can make about your data.
+Great Expectations will choose a couple of columns and generate expectations
+about them to demonstrate some examples of assertions you can make about
+your data.
 
 Press Enter to continue
 """
